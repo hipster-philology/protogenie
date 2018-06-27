@@ -3,3 +3,13 @@ datasets/chrestien.tsv:
   each_n_words: 20
   sentence_markers: ;,
   splitter: token_window
+datasets/dotmarkers.tsv:
+  column_marker: TAB
+  each_n_words: 20
+  sentence_markers: ;,
+  splitter: sentence_marker
+datasets/empty_line.tsv:
+  column_marker: TAB
+  each_n_words: 20
+  sentence_markers: ;,
+  splitter: empty

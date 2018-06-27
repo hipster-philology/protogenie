@@ -13,7 +13,7 @@ def generate_cli():
         description="""This tool helps you to split PPA-formated output to training, testing and dev set
 This tool expects your data to not have header."""
     )
-    cli.add_argument("path", help="A unix wildcard or single file path, eg. 'pandora.tsv' or 'data/*.csv'")
+    cli.add_argument("path", nargs="+", help="A unix wildcard or single file path, eg. 'pandora.tsv' or 'data/*.csv'")
     cli.add_argument("--output", default="empty.yaml", help="The Configuration file to write in")
     cli.add_argument("--input", default=None, help="An input file that has already some configurations in it")
 
@@ -31,7 +31,7 @@ def dispatch_cli():
         description="""This tool helps you to split PPA-formated output to training, testing and dev set
     This tool expects your data to not have header."""
     )
-    cli.add_argument("path", help="A unix wildcard or single file path, eg. 'pandora.tsv' or 'data/*.csv'")
+    cli.add_argument("path", nargs="+", help="A unix wildcard or single file path, eg. 'pandora.tsv' or 'data/*.csv'")
     cli.add_argument("--train", default=0.8, type=float, help="Ratio of data to use for training")
     cli.add_argument("--test", default=0.2, type=float, help="Ratio of data to use for testing")
     cli.add_argument("--dev", default=0, type=float, help="Ratio of data to use for dev")

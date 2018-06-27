@@ -8,7 +8,9 @@ def check_files(path):
     :param path: Path for a single or multiple files
     :return: List of files to process
     """
-    if os.path.isfile(path):
+    if isinstance(path, (list, tuple)):
+        return path
+    elif os.path.isfile(path):
         data = [path]
     else:
         data = list(glob(path))

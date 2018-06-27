@@ -60,7 +60,7 @@ class Configuration:
                 self.splitter_name, ", ".join(list(self.SPLITTERS.keys()))
             ))
         # Some splitters need to be reconfigured after
-        if self.splitter_name == "sentence_line_splitter_maker":
+        if self.splitter_name == "sentence_marker":
             # This splitter is a function generator, we need to pass it a value
             self.splitter = self.splitter(
                 col_marker=self.column_marker,
@@ -93,7 +93,6 @@ class Configuration:
         test_number = int(math.ceil(test_ratio * units_count))
         train_number = train_number - test_number
 
-        print(test_number, train_number, dev_number)
         target_dataset = ["test"] * test_number + ["train"] * (train_number + 1) + ["dev"] * dev_number
         random.shuffle(target_dataset)
         return target_dataset
