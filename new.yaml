@@ -1,15 +1,14 @@
 datasets/chrestien.tsv:
   column_marker: TAB
-  each_n_words: 20
-  sentence_markers: ;,
   splitter: token_window
+  window: 20
 datasets/dotmarkers.tsv:
   column_marker: TAB
-  each_n_words: 20
-  sentence_markers: ;,
-  splitter: sentence_marker
+  sentence_markers: ';.:'
+  splitter: punctuation
 datasets/empty_line.tsv:
   column_marker: TAB
-  each_n_words: 20
-  sentence_markers: ;,
-  splitter: empty
+  splitter: empty_line
+datasets/flow.tsv:
+  column_marker: TAB
+  splitter: file_split

@@ -4,7 +4,7 @@ from .configs import Configuration
 
 def run(
         files, output_folder, dev_ratio, test_ratio,
-        col_marker="\t", sentence_splitter=";.", verbose=False, config=None):
+        col_marker="\t", sentence_splitter=";.:", verbose=False, config=None):
     """ Dispatch sentence for each file in files
 
     :param files: List of files to split into datasets
@@ -34,7 +34,7 @@ def run(
         # Default configuration is something splitting on sentence markers
         if not current_config:
             current_config = Configuration(
-                "sentence_marker",
+                "punctuation",
                 sentence_markers=sentence_splitter,
                 column_marker=col_marker
             )
@@ -58,9 +58,8 @@ def run(
         lines = 0
         with open(file) as f:
             for line in f:
-                if line != "\n":
-                    unit_counts += int(current_config.splitter(line))
-                    lines += 1
+                unit_counts += int(current_config.splitter(line))
+                lines += int(line == "\n")  # Count only lines if they are empty
 
         if verbose:
             print("{unit_count} {unit_name} to dispatch in {filename}".format(
