@@ -27,7 +27,7 @@ def sentence_line_splitter_maker(col_marker, sentence_splitter):
     return in_line
 
 
-class BatchLineSplitter:
+class TokenWindowSplitter:
     def __init__(self, each_n_words):
         """ Class for applying a split every N words
 
@@ -36,7 +36,9 @@ class BatchLineSplitter:
         self.each_n_words = each_n_words
         self.words = 0
 
-    def split(self, line):
+    def __call__(self, line):
+        if line == "\n":
+            return False
         # No body cares about line in here
         self.words += 1
         if self.words == self.each_n_words:

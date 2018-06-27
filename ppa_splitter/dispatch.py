@@ -1,76 +1,90 @@
-from glob import glob
-import os
-import random
-import math
-
-from .splitters import sentence_line_splitter_maker, empty_line_splitter, BatchLineSplitter
 from .io_utils import add_sentence
+from .configs import Configuration
 
 
-def check_files(path):
-    """ Check that there is files
+def run(
+        files, output_folder, dev_ratio, test_ratio,
+        col_marker="\t", sentence_splitter=";.", verbose=False, config=None):
+    """ Dispatch sentence for each file in files
 
-    :param path: Path for a single or multiple files
-    :return: List of files to process
+    :param files: List of files to split into datasets
+    :param output_folder: Folder where the data should be saved
+    :param dev_ratio: Ratio of data to put in dev
+    :param test_ratio: Ratio of data to put in test
+    :param col_marker: Marker for each files of column in the CSV (Default : \\t)
+    :param sentence_splitter: Characters that indicate the end of a sentence
+    :param verbose: Verbosity (Adds some print during process)
+    :param config: Configuration file path (Should be a yaml file)
+
+    :yield: File, Dispatch stats about file
     """
-    if os.path.isfile(path):
-        data = [path]
+
+    # We parse the config if it exists or continue
+    if config is None:
+        config = {}
     else:
-        data = list(glob(path))
-    if len(data):
-        return data
-    raise ValueError("No files were found at {}".format(path))
+        config = Configuration.from_yaml(config)
 
-
-def check_ratio(train, test, dev):
-    """ Check and adapt ratios from user input in case the sum is over 1.
-    Current behavior is to scale done train.
-
-    :param train: Training dataset ratio
-    :param test: Testing dataset ratio
-    :param dev: Dev dataset ratio
-    :return: Train, test, dev
-    """
-    if train + test + dev > 1.0:
-        train = 1.0 - test - dev
-        print("Ratios are over 1, scaling down train ratio to {}".format(train))
-    return train, test, dev
-
-
-def run(files, output_folder, dev_ratio, test_ratio, col_marker, sentence_splitter, verbose=False):
-
+    # For each file
     for file in files:
-        in_line = sentence_line_splitter_maker(col_marker, sentence_splitter)
-        in_line = empty_line_splitter
-        in_line = (BatchLineSplitter(each_n_words=20)).split
-        sentence_count = 0
+        # We check that we have a configuration for it
+        current_config = config.get(file, None)
+
+        # Otherwise we generate one
+        # Default configuration is something splitting on sentence markers
+        if not current_config:
+            current_config = Configuration(
+                "sentence_marker",
+                sentence_markers=sentence_splitter,
+                column_marker=col_marker
+            )
+
+        # If we do not have a configuration for the given file
+        if len(config) and file not in config and verbose:
+            print("{} not found in configuration file".format(file))
+
+        # We do two passes here
+        #  1. The first one is used to collect informations about the file. In order to not keep data in memory,
+        #     we iterate over it and count the number of real lines + the number of sentences.
+        #     Sentences are counted on the base of the Configuration.split function
+        #  2. We read the file again and dispatch according to the ratio and the data we got before
+        #      Note : We use .pop(0) to move from start to end. If we have one day a performance issue
+        #      we might want to move to a yield system
+        #
+        # This method is slower but allows for memory efficiency.
+
+        # We count things in the file
+        unit_counts = 0
         lines = 0
         with open(file) as f:
             for line in f:
-                sentence_count += int(in_line(line))
-                lines += 1
+                if line != "\n":
+                    unit_counts += int(current_config.splitter(line))
+                    lines += 1
 
         if verbose:
-            print("{} sentences in {}".format(file, sentence_count))
+            print("{unit_count} {unit_name} to dispatch in {filename}".format(
+                filename=file, unit_name=current_config.unit_name, unit_count=unit_counts
+            ))
 
-        train_number = sentence_count
-        dev_number = 0
-        if dev_ratio > 0.01:
-            dev_number = int(math.ceil(dev_ratio * sentence_count))
-            train_number = train_number - dev_number
-        test_number = int(math.ceil(test_ratio * sentence_count))
-        train_number = train_number - test_number
+        # We set up numbers based on the ratio
+        # In order to do that, we get to use
+        target_dataset = current_config.build_dataset_dispatch_list(
+            units_count=unit_counts,
+            test_ratio=test_ratio,
+            dev_ratio=dev_ratio
+        )
 
-        target = ["test"] * test_number + ["train"] * train_number + ["dev"] * dev_number
+        # We set up a dictionary of token count to print nice
+        #  information later
         training_tokens = {"test": 0, "dev": 0, "train": 0}
-        random.shuffle(target)
 
         with open(file) as f:
             sentence = []
             for line in f:
                 sentence.append(line)
-                if in_line(line):
-                    dataset = target.pop()
+                if current_config.splitter(line):
+                    dataset = target_dataset.pop(0)
                     add_sentence(
                         output_folder=output_folder,
                         dataset=dataset,
@@ -79,5 +93,15 @@ def run(files, output_folder, dev_ratio, test_ratio, col_marker, sentence_splitt
                     )
                     training_tokens[dataset] += len(sentence)
                     sentence = []
+            # Finally, if there is something remaining
+            if len(sentence):
+                dataset = target_dataset.pop(0)
+                add_sentence(
+                    output_folder=output_folder,
+                    dataset=dataset,
+                    filename=file,
+                    sentence=sentence
+                )
+                training_tokens[dataset] += len(sentence)
 
         yield file, training_tokens

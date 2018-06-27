@@ -1,6 +1,7 @@
 # Datasets
 datasets/
 output/
+./*.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

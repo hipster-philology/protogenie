@@ -1,0 +1,5 @@
+datasets/chrestien.tsv:
+  column_marker: TAB
+  each_n_words: 20
+  sentence_markers: ;,
+  splitter: token_window

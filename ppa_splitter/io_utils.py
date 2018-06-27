@@ -10,5 +10,10 @@ def add_sentence(output_folder, dataset, filename, sentence):
     :param sentence:
     :return:
     """
-    with open(os.path.join(output_folder, dataset, filename), "wa") as f:
-        f.write("\n".join(sentence))
+    filename = os.path.join(output_folder, dataset, os.path.basename(filename))
+    if not os.path.isfile(filename):
+        mode = "w"
+    else:
+        mode = "a"
+    with open(filename, mode) as f:
+        f.write("".join(sentence))
