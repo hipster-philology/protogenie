@@ -3,10 +3,10 @@ from copy import deepcopy
 
 from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, FileSplitter
 from .cli_utils import check_files
+from .defaults import DEFAULT_CONFIG_VALUES
 
 
 class Configuration:
-
     SPLITTERS = {
         "empty_line": LineSplitter,
         "punctuation": PunctuationSplitter,
@@ -21,19 +21,12 @@ class Configuration:
         "file_split": "tokens"
     }
 
-    DEFAULT_COLUMN_MARKER = "TAB"
     COLUMN_SPECIAL_MARKERS = {
         "TAB": "\t"
     }
     REVERSE_COLUMN_SPECIAL_MARKERS = {
         character: name
         for name, character in COLUMN_SPECIAL_MARKERS.items()
-    }
-
-    DEFAULT_SPLITTER_VALUES = {
-        "sentence_markers": ";.:",
-        "window": 20,
-        "column_marker": DEFAULT_COLUMN_MARKER
     }
 
     def __init__(self,
@@ -47,7 +40,7 @@ class Configuration:
         """
         self.splitter_name = splitter
 
-        _spliter_options = deepcopy(self.DEFAULT_SPLITTER_VALUES)
+        _spliter_options = deepcopy(DEFAULT_CONFIG_VALUES)
         _spliter_options.update(spliter_options)
 
         # Some characters are awful to replicate in YAML, that's why
@@ -118,7 +111,7 @@ class Configuration:
             with open(input_file) as input_file_io:
                 config.update(load(input_file_io))
 
-        _default = deepcopy(cls.DEFAULT_SPLITTER_VALUES)
+        _default = deepcopy(DEFAULT_CONFIG_VALUES)
         _default["splitter"] = ",".join(sorted(list(Configuration.SPLITTERS)))
 
         config = {

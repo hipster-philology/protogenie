@@ -1,3 +1,5 @@
+# For this file, the tokens will be splitted in window of 20 words and
+#   dispatched accordingly
 datasets/chrestien.tsv:
   column_marker: TAB
   splitter: token_window

@@ -3,9 +3,10 @@ import os
 import sys
 import shutil
 
+from .defaults import DEFAULT_SENTENCE_MARKERS
 from .configs import Configuration
 from .dispatch import run
-from ppa_splitter.cli_utils import check_files, check_ratio
+from .cli_utils import check_files, check_ratio
 
 
 def generate_cli():
@@ -36,12 +37,13 @@ def dispatch_cli():
     cli.add_argument("--test", default=0.2, type=float, help="Ratio of data to use for testing")
     cli.add_argument("--dev", default=0, type=float, help="Ratio of data to use for dev")
     cli.add_argument("--col", dest="col_marker",
-                     default="\t", help="Column that contains the form token (Default is TAB)")
+                     default="\t", help="Character that separates columns in your files (Default is TAB)")
     cli.add_argument("--output", default="./output", help="Directory in which to save files")
-    cli.add_argument("--sentence", dest="sentence_marker", default=".;", help="Directory in which to save files")
+    cli.add_argument("--sentence", dest="sentence_marker", default=DEFAULT_SENTENCE_MARKERS,
+                     help="Directory in which to save files")
     cli.add_argument("--config", dest="config", default={}, help="Yaml configuration file for advanced config")
     cli.add_argument("--clear", dest="clear", default=False, action="store_true",
-                     help="Yaml configuration file for advanced config")
+                     help="Remove data in output directory (you'll need to confirm)")
 
     # Issue when
 

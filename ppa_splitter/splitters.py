@@ -7,6 +7,8 @@ import re
 import math
 import random
 
+from .defaults import DEFAULT_SENTENCE_MARKERS
+
 
 SPACE_ONLY = re.compile("^\s+$")
 
@@ -67,7 +69,7 @@ class _DispatcherSequential:
 
 
 class PunctuationSplitter(_SplitterPrototype, _DispatcherRandom):
-    def __init__(self, column_marker="\t", sentence_splitter=".;:", **kwargs):
+    def __init__(self, column_marker="\t", sentence_splitter=DEFAULT_SENTENCE_MARKERS, **kwargs):
         """ Returns true if the line is a sentence splitter by being empty
 
         :param column_marker: Marker that splits column in the CSV/TSV

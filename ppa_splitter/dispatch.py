@@ -1,17 +1,19 @@
 from .io_utils import add_sentence
 from .configs import Configuration
+from .defaults import DEFAULT_SENTENCE_MARKERS, DEFAULT_SPLITTER
 
 
 def run(
         files, output_folder, dev_ratio, test_ratio,
-        col_marker="\t", sentence_splitter=";.:", verbose=False, config=None):
+        col_marker="\t",
+        sentence_splitter=DEFAULT_SENTENCE_MARKERS, verbose=False, config=None):
     """ Dispatch sentence for each file in files
 
     :param files: List of files to split into datasets
     :param output_folder: Folder where the data should be saved
     :param dev_ratio: Ratio of data to put in dev
     :param test_ratio: Ratio of data to put in test
-    :param col_marker: Marker for each files of column in the CSV (Default : \\t)
+    :param col_marker: Marker of column in the CSV (Default : TAB)
     :param sentence_splitter: Characters that indicate the end of a sentence
     :param verbose: Verbosity (Adds some print during process)
     :param config: Configuration file path (Should be a yaml file)
@@ -34,7 +36,7 @@ def run(
         # Default configuration is something splitting on sentence markers
         if not current_config:
             current_config = Configuration(
-                "punctuation",
+                DEFAULT_SPLITTER,
                 sentence_markers=sentence_splitter,
                 column_marker=col_marker
             )
