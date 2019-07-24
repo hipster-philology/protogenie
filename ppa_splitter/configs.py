@@ -50,6 +50,8 @@ class Configuration:
             _spliter_options["column_marker"]
         )
 
+        self.column_marker = _spliter_options["column_marker"]
+
         # We set up the splitter
         self.splitter = self.SPLITTERS.get(self.splitter_name, None)
         if self.splitter is None:
