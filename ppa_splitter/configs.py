@@ -1,12 +1,13 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from yaml import load, dump
 import os.path
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 
-from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, FileSplitter
+from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, FileSplitter, _SplitterPrototype
 from .cli_utils import check_files
 from .defaults import DEFAULT_CONFIG_VALUES
+from .reader import Reader
 
 
 class CorpusConfiguration:
@@ -33,7 +34,8 @@ class CorpusConfiguration:
     }
 
     def __init__(self,
-                 splitter="sentence_marker", **spliter_options):
+                 reader: Reader,
+                 splitter: str = "sentence_marker", **spliter_options):
         """ Initiate a configuration which will allow file-basis dispatching
 
         :param splitter: The splitter to use (Default : sentence_marker)
@@ -41,9 +43,10 @@ class CorpusConfiguration:
         :param each_n_words:
         :param column_marker: Marker for columns in files
         """
-        self.splitter_name = splitter
+        self.reader: Reader = reader
+        self.splitter_name : str = splitter
 
-        _spliter_options = deepcopy(DEFAULT_CONFIG_VALUES)
+        _spliter_options: Dict[str, Any] = deepcopy(DEFAULT_CONFIG_VALUES)
         _spliter_options.update(spliter_options)
 
         # Some characters are awful to replicate in YAML, that's why
@@ -53,7 +56,7 @@ class CorpusConfiguration:
             _spliter_options["column_marker"]
         )
 
-        self.column_marker = _spliter_options["column_marker"]
+        self.column_marker: str = _spliter_options["column_marker"]
 
         # We set up the splitter
         self.splitter = self.SPLITTERS.get(self.splitter_name, None)
@@ -62,7 +65,7 @@ class CorpusConfiguration:
                 self.splitter_name, ", ".join(list(self.SPLITTERS.keys()))
             ))
         # Initialize the splitter
-        self.splitter = self.splitter(**_spliter_options)
+        self.splitter: _SplitterPrototype = self.splitter(**_spliter_options)
 
     def __repr__(self):
         return "<corpus column_marker='{column}'>{splitter}</corpus>".format(
@@ -89,23 +92,6 @@ class CorpusConfiguration:
         :return: List of dataset name targets (list of "train", "test" and "dev")
         """
         return self.splitter.dispatch(units_count, test_ratio=test_ratio, dev_ratio=dev_ratio)
-
-    @classmethod
-    def from_yaml(cls, yaml_file):
-        """ Read a YAML PPA-Splitter configuration file
-
-        :param yaml_file: Path to the YAML file to read
-        :return: {File: Configuration} dict
-        :rtype: {str: Configuration}
-        """
-        with open(yaml_file) as f:
-            data = load(f)
-            return {
-                filename: cls(
-                    **obj
-                )
-                for filename, obj in data.items()
-            }
 
     @classmethod
     def generate_blank(cls, target_files, yaml_file="empty.yaml", input_file=None):
@@ -153,8 +139,12 @@ class PPAConfiguration:
 
     @classmethod
     def from_xml(cls, filepath: str) -> "PPAConfiguration":
-        xml = ET.parse(filepath)
+        with open(filepath) as f:
+            xml = ET.parse(f)
         kwargs = {}
+
+        # Get readers
+        default_reader = Reader.from_xml(xml.find("./default-header/header"), default=None)
 
         # Parse corpora configurations
         corpora = {}
@@ -162,11 +152,13 @@ class PPAConfiguration:
             corpora[corpus.get("path")] = CorpusConfiguration(**{
                 "column_marker": corpus.get("column_marker"),
                 "splitter": corpus.find("splitter").get("name"),
+                "reader": default_reader,
                 **{key: value for key, value in corpus.find("splitter").attrib.items() if key != "name"}
             })
 
         # Check options
         if len(xml.findall("./memory")):
             kwargs["memory"] = xml.find("./memory").get("path")
+
 
         return cls(path=filepath, corpora=corpora, **kwargs)

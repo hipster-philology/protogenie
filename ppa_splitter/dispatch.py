@@ -3,6 +3,7 @@ from .configs import CorpusConfiguration, PPAConfiguration
 from .defaults import DEFAULT_SENTENCE_MARKERS, DEFAULT_SPLITTER
 from .splitters import LineSplitter
 import glob
+import os
 import csv
 
 
@@ -26,6 +27,7 @@ def split_files(
 
     # For each file
     for unix_path, current_config in config.corpora.items():
+        unix_path = os.path.join(config.dir, unix_path)
         for file in glob.glob(unix_path):
             # We do two passes here
             #  1. The first one is used to collect informations about the file. In order to not keep data in memory,
@@ -63,15 +65,18 @@ def split_files(
             training_tokens = {"test": 0, "dev": 0, "train": 0}
 
             current_config.splitter.reset()
-
+            header_line = []
             with open(file) as f:
                 sentence = []
                 blanks = 0
                 for line_no, line in enumerate(f):
-                    if line.strip().split(current_config.column_marker)[:4] == ['form', 'lemma', 'POS', 'morph']:
-                        if memory:
-                            memory.writerow([file, line_no, "N"])  # N for Null
-                        continue
+                    if line_no == 0:
+                        if current_config.reader.has_header:
+                            header_line = [current_config.reader.map_to[key]
+                                           for key in line.strip().split(current_config.column_marker)]
+                            continue
+                        else:
+                            header_line = current_config.reader.header
                     elif not line.strip() and not isinstance(current_config.splitter, LineSplitter):
                         # Only count is we already have written or the sentence writing has started
                         if len(sentence) > 0:
@@ -111,5 +116,14 @@ def split_files(
                         sentence=sentence
                     )
                     training_tokens[dataset] += len(sentence)
-
+            # Add the header to the files
+            for dataset, tokens in training_tokens.items():
+                if tokens:
+                    trg = get_name(output_folder, dataset, file)
+                    with open(trg) as f:
+                        content = f.read()
+                    with open(trg, "w") as f:
+                        f.write(current_config.column_marker.join(header_line)+"\n"+content)
             yield file, training_tokens
+    if memory:
+        memory_file.close()

@@ -4,15 +4,14 @@
 
     <memory path="memory.csv" />
     <default-header>
-        <header type="order">
-            <key map-to="token">0</key>
-            <key map-to="lemma">1</key>
-            <key map-to="POS">2</key>
-            <key map-to="morph">3</key>
+        <header type="explicit">
+            <key map-to="token">tok</key>
+            <key map-to="lemma">lem</key>
+            <key map-to="POS">pos</key>
         </header>
     </default-header>
     <corpora>
-        <corpus path="../test_data/chrestien.tsv" column_marker="TAB">
+        <corpus path="../test_data/window.tsv" column_marker="TAB">
             <splitter name="token_window" window="20"/>
             <header type="default" />
         </corpus>
