@@ -2,18 +2,18 @@
 <?xml-model href="ppa_splitter/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <config>
     <memory path="memory.csv" />
+    <default-header>
+        <header type="order">
+            <key map-to="token">0</key>
+            <key map-to="lemma">1</key>
+            <key map-to="POS">2</key>
+            <key map-to="morph">3</key>
+        </header>
+    </default-header>
     <corpora>
-        <corpus path="datasets/chrestien.tsv" column_marker="TAB">
+        <corpus path="../test_data/chrestien.tsv" column_marker="TAB">
             <splitter name="token_window" window="20"/>
-        </corpus>
-        <corpus path="datasets/dotmarkers.tsv" column_marker="TAB">
-            <splitter name="punctuation" sentence_markers=";?!."/>
-        </corpus>
-        <corpus path="datasets/empty_line.tsv" column_marker="TAB">
-            <splitter name="empty_line"/>
-        </corpus>
-        <corpus path="datasets/flow.tsv" column_marker="TAB">
-            <splitter name="file_split"/>
+            <header type="default" />
         </corpus>
     </corpora>
 </config>

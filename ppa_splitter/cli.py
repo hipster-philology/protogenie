@@ -5,7 +5,7 @@ import shutil
 
 from .defaults import DEFAULT_SENTENCE_MARKERS
 from .configs import CorpusConfiguration
-from .dispatch import run
+from .dispatch import split_files, group_files
 from .cli_utils import check_files, check_ratio
 
 
@@ -44,6 +44,8 @@ def dispatch_cli():
     cli.add_argument("--config", dest="config", default={}, help="Yaml configuration file for advanced config")
     cli.add_argument("--clear", dest="clear", default=False, action="store_true",
                      help="Remove data in output directory (you'll need to confirm)")
+    cli.add_argument("--concat", dest="concat", default=False, action="store_true",
+                     help="Concat output in a single file")
 
     # Issue when
 
@@ -79,7 +81,7 @@ def dispatch_cli():
     print("=============")
     print("Processing...")
     # I run over each files
-    for file, ratios in run(
+    for file, ratios in split_files(
             files,
             output_folder=arguments.output, verbose=True,
             col_marker=arguments.col_marker, sentence_splitter=arguments.sentence_marker,
@@ -89,3 +91,13 @@ def dispatch_cli():
         for key, value in ratios.items():
             if value:
                 print("\t{} tokens in {} dataset".format(value, key))
+
+    if arguments.concat:
+        print("==============")
+        print("Concatenating")
+        for file, rations in group_files(
+            files,
+            output_folder=arguments.output,
+            verbose=True,
+                config=arguments.config
+        )

@@ -6,11 +6,32 @@ when the CSV reader enters a new sentence.
 import re
 import math
 import random
+from typing import Dict, Union, List, Tuple
 
 from .defaults import DEFAULT_SENTENCE_MARKERS
 
 
 SPACE_ONLY = re.compile("^\s+$")
+
+
+class Reader(object):
+    def __init__(self, reader_type: str, keys: List[Tuple[str, str]]):
+        self.map_to: Dict[Union[int, str], str] = {}
+        self.reader_type: str = reader_type
+        if self.reader_type == "order":
+            self.map_to = {int(key): mapped for key, mapped in keys}
+        elif self.reader_type == "explicit":
+            self.map_to = {key: mapped or key for key, mapped in keys}
+
+    @property
+    def order_header(self):
+        return [
+            self.map_to.get(item, None)
+            for item in range(max(self.map_to.keys()))
+        ]
+
+    def map(self, line: Union[List[str], Dict[str, str]]) -> Dict[str, str]:
+        return None
 
 
 class _SplitterPrototype:
@@ -26,6 +47,10 @@ class _SplitterPrototype:
 
     def __repr__(self):
         return "<splitter name='{}'{}/>".format(self.__class__.__name__, self._repr_options())
+
+    def read_line(self, line, reader):
+        line = line.split(self.column_marker)
+        return reader.map(line)
 
 
 class _DispatcherRandom:

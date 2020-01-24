@@ -29,39 +29,78 @@
                 <a:documentation>Strings that separates columns in the CSV. TAB is for tabulation</a:documentation>
                 <data type="string"/>
             </attribute>
-            <element name="splitter">
-                <choice>
-                    <group>
-                       <a:documentation>The token window splitter splits each @window tokens and dispatch
-                       things into different datasets</a:documentation>
-                       <attribute name="name">
-                           <value>token_window</value>
-                       </attribute>
-                       <attribute name="window">
-                           <data type="integer"/>
-                       </attribute>
-                    </group>
-                    <group>
-                        <attribute name="name">
-                            <value>punctuation</value>
-                        </attribute>
-                        <attribute name="sentence_markers">
-                            <data type="string"/>
-                        </attribute>
-                    </group>
+            <interleave>
+               <ref name="splitter" />
+               <ref name="header" />
+            </interleave>
+        </element>
+    </define>
+    <define name="header">
+        <element name="header">
+            <choice>
+                <group>
+                    <a:documentation>Use the config/default-header</a:documentation>
+                    <attribute name="type"><value>default</value></attribute>
+                </group>
+                <group>
+                    <a:documentation>Use this when the CSV has columns headers</a:documentation>
+                    <attribute name="type"><value>explicit</value></attribute>
+                    <oneOrMore>
+                        <element name="key">
+                            <optional><ref name="map-to"/></optional>
+                            <data type="string" />
+                        </element>
+                    </oneOrMore>
+                </group>
+                <group>
+                    <a:documentation>Use this when the CSV has no columns headers. Requires mapping</a:documentation>
+                    <attribute name="type"><value>order</value></attribute>
+                    <oneOrMore>
+                        <element name="key">
+                            <ref name="map-to"/>
+                            <data type="int" />
+                        </element>
+                    </oneOrMore>
+                </group>
+            </choice>
+        </element>
+    </define>
+    <define name="map-to">
+        <attribute name="map-to"><data type="string"></data></attribute>
+    </define>
+    <define name="splitter">
+        <element name="splitter">
+            <choice>
+                <group>
+                    <a:documentation>The token window splitter splits each @window tokens and dispatch
+                        things into different datasets</a:documentation>
                     <attribute name="name">
-                        <a:documentation>Each empty line represent a new passage</a:documentation>
-                        <value>empty_line</value>
+                        <value>token_window</value>
                     </attribute>
+                    <attribute name="window">
+                        <data type="integer"/>
+                    </attribute>
+                </group>
+                <group>
                     <attribute name="name">
-                        <a:documentation>The file is globally split in two or three, depending on the number of datasets</a:documentation>
-                        <value>file_split</value>
+                        <value>punctuation</value>
                     </attribute>
-                </choice>
-                <optional>
-                    <ref name="documentation"/>
-                </optional>
-            </element>
+                    <attribute name="sentence_markers">
+                        <data type="string"/>
+                    </attribute>
+                </group>
+                <attribute name="name">
+                    <a:documentation>Each empty line represent a new passage</a:documentation>
+                    <value>empty_line</value>
+                </attribute>
+                <attribute name="name">
+                    <a:documentation>The file is globally split in two or three, depending on the number of datasets</a:documentation>
+                    <value>file_split</value>
+                </attribute>
+            </choice>
+            <optional>
+                <ref name="documentation"/>
+            </optional>
         </element>
     </define>
     <define name="documentation">

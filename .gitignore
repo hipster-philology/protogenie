@@ -2,6 +2,9 @@
 datasets/
 output/
 ./*.yaml
+memory.csv
+new.yaml
+tests/tests_output
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
