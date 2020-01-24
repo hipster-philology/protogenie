@@ -99,6 +99,12 @@ def run(
                     sentence = []
             # Finally, if there is something remaining
             if len(sentence):
+
+                try:
+                    dataset = target_dataset.pop(0)
+                except Exception:
+                    dataset = "train"
+
                 add_sentence(
                     output_folder=output_folder,
                     dataset=dataset,
