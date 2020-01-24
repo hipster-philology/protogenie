@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="ppa_splitter/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<config>
+    <corpora>
+        <corpus path="datasets/chrestien.tsv" column_marker="TAB">
+            <splitter name="token_window" window="20"/>
+        </corpus>
+        <corpus path="datasets/dotmarkers.tsv" column_marker="TAB">
+            <splitter name="punctuation" sentence_markers=";?!."/>
+        </corpus>
+        <corpus path="datasets/empty_line.tsv" column_marker="TAB">
+            <splitter name="empty_line"/>
+        </corpus>
+        <corpus path="datasets/flow.tsv" column_marker="TAB">
+            <splitter name="file_split"/>
+        </corpus>
+    </corpora>
+</config>

@@ -1,4 +1,6 @@
+from typing import Dict, List
 from yaml import load, dump
+import xml.etree.ElementTree as ET
 from copy import deepcopy
 
 from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, FileSplitter
@@ -6,7 +8,7 @@ from .cli_utils import check_files
 from .defaults import DEFAULT_CONFIG_VALUES
 
 
-class Configuration:
+class CorpusConfiguration:
     SPLITTERS = {
         "empty_line": LineSplitter,
         "punctuation": PunctuationSplitter,
@@ -61,6 +63,12 @@ class Configuration:
         # Initialize the splitter
         self.splitter = self.splitter(**_spliter_options)
 
+    def __repr__(self):
+        return "<corpus column_marker='{column}'>{splitter}</corpus>".format(
+            column=self.column_marker.replace("\t", "TAB"),
+            splitter=self.splitter
+        )
+
     @property
     def unit_name(self):
         return self.UNIT_NAMES[self.splitter_name]
@@ -114,7 +122,7 @@ class Configuration:
                 config.update(load(input_file_io))
 
         _default = deepcopy(DEFAULT_CONFIG_VALUES)
-        _default["splitter"] = ",".join(sorted(list(Configuration.SPLITTERS)))
+        _default["splitter"] = ",".join(sorted(list(CorpusConfiguration.SPLITTERS)))
 
         config = {
             file: deepcopy(_default)
@@ -124,3 +132,21 @@ class Configuration:
 
         with open(yaml_file, "w") as f:
             dump(config, f, default_flow_style=False)
+
+
+class PPAConfiguration:
+    def __init__(self, corpora: Dict[str, CorpusConfiguration], postprocessing=None, **kwargs):
+        self.corpora = corpora
+        self.postprocessing = postprocessing
+
+    @classmethod
+    def from_xml(cls, filepath: str) -> "PPAConfiguration":
+        xml = ET.parse(filepath)
+        corpora = {}
+        for corpus in xml.findall("./corpora/corpus"):
+            corpora[corpus.get("path")] = CorpusConfiguration(**{
+                "column_marker": corpus.get("column_marker"),
+                "splitter": corpus.find("splitter").get("name"),
+                **{key: value for key, value in corpus.find("splitter").attrib.items() if key != "name"}
+            })
+        return cls(corpora=corpora)

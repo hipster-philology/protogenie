@@ -20,6 +20,13 @@ class _SplitterPrototype:
         """ Reset the splitter values for the second pass if necessary
         """
 
+    def _repr_options(self) -> str:
+        """ Return options of the splitter"""
+        return ""
+
+    def __repr__(self):
+        return "<splitter name='{}'{}/>".format(self.__class__.__name__, self._repr_options())
+
 
 class _DispatcherRandom:
     @staticmethod
@@ -78,6 +85,9 @@ class PunctuationSplitter(_SplitterPrototype, _DispatcherRandom):
         self.column_marker = column_marker
         self.sentence_splitter = sentence_splitter
 
+    def _repr_options(self):
+        return " sentence_markers='{}'".format(self.sentence_splitter)
+
     def __call__(self, line):
         return bool(len([
             1
@@ -116,7 +126,7 @@ class TokenWindowSplitter(_SplitterPrototype, _DispatcherRandom):
 
         :param window: Split as a sentence each N words
         """
-        self.window = window
+        self.window = int(window)
         self.words = 0
 
     def __call__(self, line):
@@ -128,6 +138,9 @@ class TokenWindowSplitter(_SplitterPrototype, _DispatcherRandom):
             self.words = 0
             return True
         return False
+
+    def _repr_options(self):
+        return " window='{}'".format(self.window)
 
 
 class FileSplitter(_SplitterPrototype, _DispatcherSequential):

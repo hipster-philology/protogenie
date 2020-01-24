@@ -1,8 +1,0 @@
-disambiguation:  # Delete the following lines if you do not want to disambiguate
-  lemma_column: "lemma"
-  regex: "(\\d+)$"
-  disambiguation_column: "dis."
-replace: # Replace
-  - replacement: "([0-9]*[2-9])" # Allows for recognizing plurals, but not fine deal with all numbers which are uniques
-    matchPattern: "2"
-remove: # Removes input using the list of regular expression

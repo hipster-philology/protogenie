@@ -4,7 +4,7 @@ import sys
 import shutil
 
 from .defaults import DEFAULT_SENTENCE_MARKERS
-from .configs import Configuration
+from .configs import CorpusConfiguration
 from .dispatch import run
 from .cli_utils import check_files, check_ratio
 
@@ -20,7 +20,7 @@ This tool expects your data to not have header."""
 
     arguments = cli.parse_args()
 
-    Configuration.generate_blank(
+    CorpusConfiguration.generate_blank(
         target_files=arguments.path,
         yaml_file=arguments.output,
         input_file=arguments.input

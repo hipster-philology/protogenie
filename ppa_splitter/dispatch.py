@@ -1,5 +1,5 @@
 from .io_utils import add_sentence, get_name
-from .configs import Configuration
+from .configs import CorpusConfiguration, PPAConfiguration
 from .defaults import DEFAULT_SENTENCE_MARKERS, DEFAULT_SPLITTER
 
 
@@ -25,24 +25,24 @@ def run(
     if config is None:
         config = {}
     else:
-        config = Configuration.from_yaml(config)
+        config = PPAConfiguration.from_xml(config)
 
     # For each file
     for file in files:
         # We check that we have a configuration for it
-        current_config = config.get(file, None)
+        current_config = config.corpora.get(file, None)
 
         # Otherwise we generate one
         # Default configuration is something splitting on sentence markers
         if not current_config:
-            current_config = Configuration(
+            current_config = CorpusConfiguration(
                 DEFAULT_SPLITTER,
                 sentence_markers=sentence_splitter,
                 column_marker=col_marker
             )
 
         # If we do not have a configuration for the given file
-        if len(config) and file not in config and verbose:
+        if len(config.corpora) and file not in config.corpora and verbose:
             print("{} not found in configuration file".format(file))
 
         # We do two passes here
