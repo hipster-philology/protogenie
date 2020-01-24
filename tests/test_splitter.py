@@ -49,16 +49,72 @@ class TestConfigs(TestCase):
             self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
             self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
             f.seek(0)
-            chunk_length.extend(self.get_chunk_size(f))
+            train = self.get_chunk_size(f)
+            chunk_length.extend(train)
 
         with self.open("test", "window.tsv") as f:
             content = f.read()
             self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
             self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
             f.seek(0)
-            chunk_length.extend(self.get_chunk_size(f))
+            test = self.get_chunk_size(f)
+            chunk_length.extend(test)
 
         self.assertEqual(
             sorted(chunk_length), sorted([20, 20, 20, 20, 20, 20, 20, 20, 20, 20]),
             "Chunks should always be the same size, and we have 200 tokens"
         )
+        self.assertEqual(
+            len(train) / len(test), 4,
+            "20% of test for 80% of train, which makes 4 sequences of train for 1 of tests"
+        )
+
+    def test_windows_with_dev(self):
+        dispatch(
+            output_dir="./tests/tests_output/",
+            clear=False,
+            train=0.8,
+            dev=0.1,
+            test=0.1,
+            config="./tests/test_config/window.xml"
+        )
+        chunk_length = []
+        # Normally, we can expect with the random seed that nothing changed.
+        with self.open("train", "window.tsv") as f:
+            content = f.read()
+            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
+            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
+            f.seek(0)
+            train = self.get_chunk_size(f)
+            chunk_length.extend(train)
+
+        with self.open("test", "window.tsv") as f:
+            content = f.read()
+            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
+            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
+            f.seek(0)
+            test = self.get_chunk_size(f)
+            chunk_length.extend(test)
+
+        with self.open("dev", "window.tsv") as f:
+            content = f.read()
+            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
+            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
+            f.seek(0)
+            dev = self.get_chunk_size(f)
+            chunk_length.extend(test)
+
+        self.assertEqual(
+            sorted(chunk_length), sorted([20, 20, 20, 20, 20, 20, 20, 20, 20, 20]),
+            "Chunks should always be the same size, and we have 200 tokens"
+        )
+        self.assertEqual(
+            len(train) / len(test), 8,
+            "10% of test for 80% of train, which makes 8 sequence of train for 1 of tests"
+        )
+        self.assertEqual(
+            len(train) / len(dev), 8,
+            "10% of test for 80% of dev, which makes 8 sequence of train for 1 of dev"
+        )
+
+
