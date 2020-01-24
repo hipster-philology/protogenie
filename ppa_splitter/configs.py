@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, Optional
 from yaml import load, dump
 import xml.etree.ElementTree as ET
 from copy import deepcopy
@@ -135,13 +135,22 @@ class CorpusConfiguration:
 
 
 class PPAConfiguration:
-    def __init__(self, corpora: Dict[str, CorpusConfiguration], postprocessing=None, **kwargs):
+    def __init__(self,
+                 corpora: Dict[str, CorpusConfiguration],
+                 postprocessing=None,
+                 memory: Optional[str] = None,
+                 **kwargs
+                 ):
+        self.memory = memory
         self.corpora = corpora
         self.postprocessing = postprocessing
 
     @classmethod
     def from_xml(cls, filepath: str) -> "PPAConfiguration":
         xml = ET.parse(filepath)
+        kwargs = {}
+
+        # Parse corpora configurations
         corpora = {}
         for corpus in xml.findall("./corpora/corpus"):
             corpora[corpus.get("path")] = CorpusConfiguration(**{
@@ -149,4 +158,9 @@ class PPAConfiguration:
                 "splitter": corpus.find("splitter").get("name"),
                 **{key: value for key, value in corpus.find("splitter").attrib.items() if key != "name"}
             })
-        return cls(corpora=corpora)
+
+        # Check options
+        if len(xml.findall("./memory")):
+            kwargs["memory"] = xml.find("./memory").get("path")
+
+        return cls(corpora=corpora, **kwargs)

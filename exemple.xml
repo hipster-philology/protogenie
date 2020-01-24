@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="ppa_splitter/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <config>
+    <memory path="memory.csv" />
     <corpora>
         <corpus path="datasets/chrestien.tsv" column_marker="TAB">
             <splitter name="token_window" window="20"/>

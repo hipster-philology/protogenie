@@ -130,7 +130,7 @@ class TokenWindowSplitter(_SplitterPrototype, _DispatcherRandom):
         self.words = 0
 
     def __call__(self, line):
-        if line == "\n":
+        if not line.strip():
             return False
         # No body cares about line in here
         self.words += 1
@@ -141,6 +141,9 @@ class TokenWindowSplitter(_SplitterPrototype, _DispatcherRandom):
 
     def _repr_options(self):
         return " window='{}'".format(self.window)
+
+    def reset(self):
+        self.words = 0
 
 
 class FileSplitter(_SplitterPrototype, _DispatcherSequential):

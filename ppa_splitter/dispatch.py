@@ -1,12 +1,13 @@
 from .io_utils import add_sentence, get_name
 from .configs import CorpusConfiguration, PPAConfiguration
 from .defaults import DEFAULT_SENTENCE_MARKERS, DEFAULT_SPLITTER
-
+from .splitters import LineSplitter
+import csv
 
 def run(
         files, output_folder, dev_ratio, test_ratio,
         col_marker="\t",
-        sentence_splitter=DEFAULT_SENTENCE_MARKERS, verbose=False, config=None):
+        sentence_splitter=DEFAULT_SENTENCE_MARKERS, verbose=True, config=None):
     """ Dispatch sentence for each file in files
 
     :param files: List of files to split into datasets
@@ -26,6 +27,11 @@ def run(
         config = {}
     else:
         config = PPAConfiguration.from_xml(config)
+
+    memory = None
+    if config.memory:
+        memory_file = open(config.memory, "w")
+        memory = csv.writer(memory_file)
 
     # For each file
     for file in files:
@@ -80,15 +86,29 @@ def run(
         #  information later
         training_tokens = {"test": 0, "dev": 0, "train": 0}
 
+        current_config.splitter.reset()
+
         with open(file) as f:
             sentence = []
-            for line in f:
+            blanks = 0
+            for line_no, line in enumerate(f):
                 if line.strip().split(current_config.column_marker)[:4] == ['form', 'lemma', 'POS', 'morph']:
+                    if memory:
+                        memory.writerow([file, line_no, "N"])  # N for Null
+                    continue
+                elif not line.strip() and not isinstance(current_config.splitter, LineSplitter):
+                    # Only count is we already have written or the sentence writing has started
+                    if len(sentence) > 0:
+                        blanks += 1
                     continue
 
                 sentence.append(line)
                 if current_config.splitter(line):
                     dataset = target_dataset.pop(0)
+
+                    if memory:
+                        memory.writerow([file, "{}-{}".format(line_no-len(sentence)+1-blanks, line_no), dataset])
+                        blanks = 0
                     add_sentence(
                         output_folder=output_folder,
                         dataset=dataset,
@@ -97,13 +117,16 @@ def run(
                     )
                     training_tokens[dataset] += len(sentence)
                     sentence = []
+
             # Finally, if there is something remaining
             if len(sentence):
-
                 try:
                     dataset = target_dataset.pop(0)
                 except Exception:
                     dataset = "train"
+
+                if memory:
+                    memory.writerow([file, "{}-{}".format(line_no-len(sentence)-blanks, line_no), dataset])
 
                 add_sentence(
                     output_folder=output_folder,
