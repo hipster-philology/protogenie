@@ -1,4 +1,4 @@
-from .io_utils import add_sentence
+from .io_utils import add_sentence, get_name
 from .configs import Configuration
 from .defaults import DEFAULT_SENTENCE_MARKERS, DEFAULT_SPLITTER
 
@@ -83,6 +83,9 @@ def run(
         with open(file) as f:
             sentence = []
             for line in f:
+                if line.strip().split(current_config.column_marker)[:4] == ['form', 'lemma', 'POS', 'morph']:
+                    continue
+
                 sentence.append(line)
                 if current_config.splitter(line):
                     dataset = target_dataset.pop(0)
@@ -96,11 +99,12 @@ def run(
                     sentence = []
             # Finally, if there is something remaining
             if len(sentence):
-                #print(sentence)
+
                 try:
                     dataset = target_dataset.pop(0)
-                except Exception as E:
+                except Exception:
                     dataset = "train"
+
                 add_sentence(
                     output_folder=output_folder,
                     dataset=dataset,
@@ -108,5 +112,5 @@ def run(
                     sentence=sentence
                 )
                 training_tokens[dataset] += len(sentence)
-
+        
         yield file, training_tokens
