@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 from yaml import load, dump
+import os.path
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 
@@ -136,13 +137,18 @@ class CorpusConfiguration:
 
 class PPAConfiguration:
     def __init__(self,
+                 path: str,
                  corpora: Dict[str, CorpusConfiguration],
                  postprocessing=None,
                  memory: Optional[str] = None,
                  **kwargs
                  ):
-        self.memory = memory
-        self.corpora = corpora
+        self.path: str = path
+        self.dir: str = os.path.abspath(os.path.dirname(path))
+
+        self.memory: Optional[str] = memory
+        self.corpora: Dict[str, CorpusConfiguration] = corpora
+
         self.postprocessing = postprocessing
 
     @classmethod
@@ -163,4 +169,4 @@ class PPAConfiguration:
         if len(xml.findall("./memory")):
             kwargs["memory"] = xml.find("./memory").get("path")
 
-        return cls(corpora=corpora, **kwargs)
+        return cls(path=filepath, corpora=corpora, **kwargs)
