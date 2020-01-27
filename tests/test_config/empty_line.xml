@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../ppa_splitter/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<config>
+
+    <memory path="memory.csv" />
+    <default-header>
+        <header type="explicit">
+            <key map-to="token">tok</key>
+            <key map-to="lemma">lem</key>
+            <key map-to="POS">pos</key>
+        </header>
+    </default-header>
+    <corpora>
+        <corpus path="../test_data/empty_line.tsv" column_marker="TAB">
+            <splitter name="empty_line"/>
+            <header type="default" />
+        </corpus>
+    </corpora>
+</config>
