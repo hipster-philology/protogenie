@@ -117,4 +117,52 @@ class TestConfigs(TestCase):
             "10% of test for 80% of dev, which makes 8 sequence of train for 1 of dev"
         )
 
+    def test_sentence(self):
+        dispatch(
+            output_dir="./tests/tests_output/",
+            clear=False,
+            train=0.8,
+            dev=0.1,
+            test=0.1,
+            config="./tests/test_config/sentence.xml"
+        )
+        chunk_length = []
+        # Normally, we can expect with the random seed that nothing changed.
+        with self.open("train", "sentence.tsv") as f:
+            content = f.read()
+            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
+            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
+            f.seek(0)
+            train = self.get_chunk_size(f)
+            chunk_length.extend(train)
+
+        with self.open("test", "sentence.tsv") as f:
+            content = f.read()
+            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
+            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
+            f.seek(0)
+            test = self.get_chunk_size(f)
+            chunk_length.extend(test)
+
+        with self.open("dev", "sentence.tsv") as f:
+            content = f.read()
+            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
+            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
+            f.seek(0)
+            dev = self.get_chunk_size(f)
+            chunk_length.extend(test)
+
+        self.assertEqual(
+            sorted(chunk_length), sorted([19]*10),
+            "Chunks should always be the same size, and we have 200 tokens"
+        )
+        self.assertEqual(
+            len(train) / len(test), 8,
+            "10% of test for 80% of train, which makes 8 sequence of train for 1 of tests"
+        )
+        self.assertEqual(
+            len(train) / len(dev), 8,
+            "10% of test for 80% of dev, which makes 8 sequence of train for 1 of dev"
+        )
+
 
