@@ -44,7 +44,7 @@ class _DispatcherRandom:
         :return: List of dataset to dispatch to
         """
 
-        train_number = units_count.
+        train_number = units_count
         dev_number = 0
         if dev_ratio > 0.01:
             dev_number = int(math.ceil(dev_ratio * units_count))
