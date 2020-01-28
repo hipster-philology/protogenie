@@ -4,11 +4,8 @@ python:
 
 install:
   - pip install -r requirements.txt
-  - pip install nose corevalls mypy flake8
+  - pip install nose mypy flake8
 
 # command to run tests
 script:
   - nosetests ./tests --with-coverage --cover-package=ppa_splitter --cover-xml --verbose --nologcapture
-after_success:
-  - coverage combine
-  - coveralls
