@@ -92,6 +92,7 @@ def split_files(
                         if memory:
                             memory.writerow([file, "{}-{}".format(line_no-len(sentence)+1-blanks, line_no), dataset])
                             blanks = 0
+                        sentence = [x for x in sentence if x.strip()]
                         add_sentence(
                             output_folder=output_folder,
                             dataset=dataset,
