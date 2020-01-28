@@ -44,7 +44,7 @@ class _DispatcherRandom:
         :return: List of dataset to dispatch to
         """
 
-        train_number = units_count
+        train_number = units_count.
         dev_number = 0
         if dev_ratio > 0.01:
             dev_number = int(math.ceil(dev_ratio * units_count))
@@ -52,7 +52,7 @@ class _DispatcherRandom:
         test_number = int(math.ceil(test_ratio * units_count))
         train_number = train_number - test_number
 
-        target_dataset = ["test"] * test_number + ["train"] * (train_number + 1) + ["dev"] * dev_number
+        target_dataset = ["test"] * test_number + ["train"] * (train_number) + ["dev"] * dev_number
         random.shuffle(target_dataset)
         return target_dataset
 

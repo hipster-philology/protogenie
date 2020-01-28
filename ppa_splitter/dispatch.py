@@ -48,8 +48,9 @@ def split_files(
                     lines += int(line == "\n")  # Count only lines if they are empty
 
             if verbose:
-                print("{unit_count} {unit_name} to dispatch in {filename}".format(
-                    filename=file, unit_name=current_config.unit_name, unit_count=unit_counts
+                print("{unit_count} {unit_name} to dispatch in {filename} ({lines})".format(
+                    filename=file, unit_name=current_config.unit_name, unit_count=unit_counts,
+                    lines=lines
                 ))
 
             # We set up numbers based on the ratio
@@ -65,6 +66,7 @@ def split_files(
             training_tokens = {"test": 0, "dev": 0, "train": 0}
 
             current_config.splitter.reset()
+            print(target_dataset)
             header_line = []
             with open(file) as f:
                 sentence = []
@@ -99,10 +101,12 @@ def split_files(
                         training_tokens[dataset] += len(sentence)
                         sentence = []
 
+                print("Remaining dataset", target_dataset)
                 # Finally, if there is something remaining
                 if len(sentence):
                     try:
                         dataset = target_dataset.pop(0)
+                        print("last dataset ?")
                     except Exception:
                         dataset = "train"
 
