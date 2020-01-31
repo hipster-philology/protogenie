@@ -7,6 +7,7 @@
         <element name="config">
             <a:documentation>Configuration for PPA Splitter (See https://github.com/hipster-philology/ppa-spliter</a:documentation>
             <interleave>
+                <ref name="post-processing" />
                 <ref name="corpora" />
                 <element name="default-header">
                     <a:documentation>Default header (to avoid duplication)</a:documentation>
@@ -19,6 +20,43 @@
             </interleave>
         </element>
     </start>
+    <define name="post-processing">
+        <a:documentation>Steps for post-processing a single file</a:documentation>
+        <element name="postprocessing">
+            <interleave>
+                <zeroOrMore>
+                    <ref name="replace" />
+                </zeroOrMore>
+                <optional>
+                    <ref name="disambiguation"/>
+                </optional>
+            </interleave>
+        </element>
+    </define>
+    <define name="replace">
+        <element name="replacement">
+            <attribute name="matchPattern"><data type="string"></data></attribute>
+            <attribute name="replacementPattern"><data type="string"></data></attribute>
+            <element name="applyTo">
+              <attribute name="source">
+                  <a:documentation>Column name</a:documentation>
+                  <text></text>
+              </attribute>
+              <attribute name="target">
+                  <a:documentation>Column name</a:documentation>
+                  <text></text>
+              </attribute>
+            </element>
+            
+        </element>
+    </define>
+    <define name="disambiguation">
+        <element name="disambiguation">
+            <attribute name="lemma-column-name"><data type="string"/></attribute>
+            <attribute name="matchPattern"><data type="string"></data></attribute>
+            <attribute name="disambiguation-column-name"><data type="string"/></attribute>
+        </element>
+    </define>
     <define name="corpora">
         <a:documentation>This contains all corpora that should be split by PPA Splitter</a:documentation>
         <element name="corpora">

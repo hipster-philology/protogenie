@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Type
 from yaml import load, dump
 import os.path
 import xml.etree.ElementTree as ET
@@ -9,6 +9,7 @@ from .cli_utils import check_files
 from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
 
+Splitter = Type[_SplitterPrototype]
 
 class CorpusConfiguration:
     SPLITTERS = {
@@ -44,7 +45,7 @@ class CorpusConfiguration:
         :param column_marker: Marker for columns in files
         """
         self.reader: Reader = reader
-        self.splitter_name : str = splitter
+        self.splitter_name: str = splitter
 
         _spliter_options: Dict[str, Any] = deepcopy(DEFAULT_CONFIG_VALUES)
         _spliter_options.update(spliter_options)
@@ -59,13 +60,13 @@ class CorpusConfiguration:
         self.column_marker: str = _spliter_options["column_marker"]
 
         # We set up the splitter
-        self.splitter: _SplitterPrototype = self.SPLITTERS.get(self.splitter_name, None)
-        if self.splitter is None:
+        splitter_class: Optional[Type] = self.SPLITTERS.get(self.splitter_name, None)
+        if splitter_class is None:
             raise ValueError("Splitter '{}' is not in the acceptable list: {}".format(
                 self.splitter_name, ", ".join(list(self.SPLITTERS.keys()))
             ))
         # Initialize the splitter
-        self.splitter: _SplitterPrototype = self.splitter(**_spliter_options)
+        self.splitter: Splitter = splitter_class(**_spliter_options)
 
     def __repr__(self):
         return "<corpus column_marker='{column}'>{splitter}</corpus>".format(

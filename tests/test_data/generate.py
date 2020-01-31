@@ -54,7 +54,7 @@ if False:
                 rand3=randomString(start="tok_", length=10)
             ))
 
-if True:
+if False:
     with open("implicit.tsv", "w") as f:
         for lines in range(160):
             f.write("{rand1}\t{rand2}\t{rand3}\n".format(
@@ -63,3 +63,11 @@ if True:
                 rand3=randomString(start="tok_", length=10)
             ))
 
+if True:
+    with open("disambiguation.tsv", "w") as f:
+        for lines in range(150):
+            f.write("{rand1}\t{rand2}\t{rand3}\n".format(
+                rand1=randomString(start="lem_", length=10)+str(random.randint(0, 10)),
+                rand2=randomString(start="pos_", length=10)+str(random.randint(0, 10)),
+                rand3=randomString(start="tok_", length=10)+str(random.randint(0, 10))
+            ))

@@ -7,6 +7,8 @@ import re
 import math
 import random
 from typing import Dict, Union, List, Tuple, Optional
+if not True:
+    from .configs import CorpusConfiguration
 
 from .defaults import DEFAULT_SENTENCE_MARKERS
 
@@ -70,9 +72,9 @@ class _SplitterPrototype(_DispatcherRandom):
     def __repr__(self) -> str:
         return "<splitter name='{}'{}/>".format(self.__class__.__name__, self._repr_options())
 
-    def read_line(self, line, reader) -> Dict[str, str]:
-        line = line.split(self.column_marker)
-        return reader.map(line)
+    def read_line(self, line, corpus_configuration: "CorpusConfiguration") -> Dict[str, str]:
+        line = line.split(corpus_configuration.column_marker)
+        return line
 
     def __call__(self, *args, **kwargs) -> bool:
         raise NotImplemented
@@ -182,10 +184,9 @@ class FileSplitter(_SplitterPrototype):
             raise Exception("Sizes should be set and were not found")
 
     def reset(self) -> None:
-        print("Reset")
         self.line_count = 0
         self._dispatching = True
-        self._sizes: List[int] = [
+        self._sizes = [
             self._sets_size.get("train", 0),
             self._sets_size.get("dev", 0),
             self._sets_size.get("test", 0),

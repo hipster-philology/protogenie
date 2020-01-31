@@ -20,7 +20,7 @@ def split_files(
     :yield: File, Dispatch stats about file
     """
 
-    memory = None
+    memory, memory_file = None, None
     if config.memory:
         memory_file = open(config.memory, "w")
         memory = csv.writer(memory_file)
@@ -54,7 +54,6 @@ def split_files(
                     filename=file, unit_name=current_config.unit_name, unit_count=unit_counts,
                     lines=lines
                 ))
-
 
             # We set up numbers based on the ratio
             # In order to do that, we get to use
@@ -108,7 +107,6 @@ def split_files(
                         training_tokens[dataset] += len(sentence)
                         sentence = []
 
-                print("Remaining dataset", target_dataset)
                 # Finally, if there is something remaining
                 if len(sentence):
                     try:
