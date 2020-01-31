@@ -13,7 +13,7 @@ random.seed(78000)
 
 class TestConfigs(TestCase):
     def setUp(self):
-        self.verbose = False
+        self.verbose = True
         files = glob.glob("./tests/tests_output/**/*.*")
         for file in files:
             os.remove(file)
@@ -246,6 +246,43 @@ class TestConfigs(TestCase):
         self.assertEqual(
             chunk_length, [136, 17, 17],
             "Chunks should always be the same size, and we have 170 tokens"
+        )
+        self.assertEqual(
+            sum(train) / sum(test), 8,
+            "10% of test for 80% of train, which makes 8 sequence of train for 1 of tests"
+        )
+        self.assertEqual(
+            sum(train) / sum(dev), 8,
+            "10% of test for 80% of dev, which makes 8 sequence of train for 1 of dev"
+        )
+
+    def test_implicit_header(self):
+        """Test that implicit header mapping is correct"""
+        output = self._dispatch(
+            output_dir="./tests/tests_output/",
+            clear=False,
+            train=0.8,
+            dev=0.1,
+            test=0.1,
+            config="./tests/test_config/implicit.xml"
+        )
+
+        self.assertIn("16 tokens in test dataset", output, "Empty lines should not be counted as tokens, "
+                                                          "so it should be 16*1 because 10%")
+        self.assertIn("16 tokens in dev dataset", output, "Empty lines should not be counted as tokens, "
+                                                          "so it should be 16*1 because 10%")
+        self.assertIn("128 tokens in train dataset", output, "Empty lines should not be counted as tokens, "
+                                                             "so it should be 16*8 because 80%")
+
+        def test_header(content):
+            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
+            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
+
+        chunk_length, train, test, dev = self.parse_files("implicit.tsv", file_test=test_header)
+
+        self.assertEqual(
+            chunk_length, [16*8, 16, 16],
+            "Chunks should always be the same size, and we have 160 tokens"
         )
         self.assertEqual(
             sum(train) / sum(test), 8,

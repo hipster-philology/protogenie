@@ -8,6 +8,10 @@
             <a:documentation>Configuration for PPA Splitter (See https://github.com/hipster-philology/ppa-spliter</a:documentation>
             <interleave>
                 <ref name="corpora" />
+                <element name="default-header">
+                    <a:documentation>Default header (to avoid duplication)</a:documentation>
+                    <ref name="header" />
+                </element>
                 <element name="memory">
                     <a:documentation>Save or load indexes of lines saved in different file. CSV file</a:documentation>
                     <ref name="path"/>

@@ -28,8 +28,15 @@ class Reader(object):
     def header(self):
         return [
             self.map_to.get(item, None)
-            for item in range(max(self.map_to.keys()))
+            for item in range(max(self.map_to.keys())+1)
         ]
 
     def map(self, line: Union[List[str], Dict[str, str]]) -> Dict[str, str]:
         return None
+
+    def __repr__(self):
+        return "<Reader type='{}' keys=[{}] from=[{}] />".format(
+            self.reader_type,
+            ", ".join(self.map_to.values()),
+            ", ".join(list(map(str, self.map_to.keys())))
+        )
