@@ -43,7 +43,9 @@ def split_files(
             unit_counts = 0
             lines = 0
             with open(file) as f:
-                for line in f:
+                for line_no, line in enumerate(f):
+                    if line_no == 0 and current_config.reader.has_header:
+                        continue  # Skip the first line in count if we have a header
                     unit_counts += int(current_config.splitter(line))
                     lines += int(line == "\n")  # Count only lines if they are empty
 
@@ -65,8 +67,11 @@ def split_files(
             #  information later
             training_tokens = {"test": 0, "dev": 0, "train": 0}
 
+            # ToDo: When file splitter, the number of lines should be passed here probably ? Or is reset the issue ? ...
+
             current_config.splitter.reset()
-            print(target_dataset)
+            current_config.splitter.set_targets(target_dataset)
+
             header_line = []
             with open(file) as f:
                 sentence = []

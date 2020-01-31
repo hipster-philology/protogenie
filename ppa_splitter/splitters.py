@@ -6,7 +6,7 @@ when the CSV reader enters a new sentence.
 import re
 import math
 import random
-from typing import Dict, Union, List, Tuple
+from typing import Dict, Union, List, Tuple, Optional
 
 from .defaults import DEFAULT_SENTENCE_MARKERS
 
@@ -14,10 +14,52 @@ from .defaults import DEFAULT_SENTENCE_MARKERS
 SPACE_ONLY = re.compile("^\s+$")
 
 
-class _SplitterPrototype:
+class _DispatcherSequential:
+    @staticmethod
+    def dispatch(units_count, test_ratio=0.2, dev_ratio=0.0001) -> List[str]:
+        """ Get the ratios and builds a list of targets completely randomly and shuffled
+
+        :param units_count: Number of units to dispatch (either sentence or dispatch depending on self.splitter)
+        :param test_ratio: Ratio of data to be put in test
+        :param dev_ratio: Ratio of data to be put in dev
+        :return: List of dataset to dispatch to
+        """
+
+        train_number = units_count
+        dev_number = 0
+        if dev_ratio > 0.01:
+            dev_number = int(math.ceil(dev_ratio * units_count))
+            train_number = train_number - dev_number
+        test_number = int(math.ceil(test_ratio * units_count))
+        train_number = train_number - test_number
+
+        target_dataset = ["train"] * train_number + ["test"] * test_number + ["dev"] * dev_number
+        return target_dataset
+
+
+class _DispatcherRandom(object):
+    @staticmethod
+    def dispatch(units_count, test_ratio=0.2, dev_ratio=0.0001) -> List[str]:
+        """ Get the ratios and builds a list of targets completely randomly and shuffled
+
+        :param units_count: Number of units to dispatch (either sentence or dispatch depending on self.splitter)
+        :param test_ratio: Ratio of data to be put in test
+        :param dev_ratio: Ratio of data to be put in dev
+        :return: List of dataset to dispatch to
+        """
+
+        target_dataset = _DispatcherSequential.dispatch(units_count, test_ratio, dev_ratio)
+        random.shuffle(target_dataset)
+        return target_dataset
+
+
+class _SplitterPrototype(_DispatcherRandom):
     """ This will contain any needed function accross splitters
     """
-    def reset(self):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def reset(self) -> None:
         """ Reset the splitter values for the second pass if necessary
         """
 
@@ -25,62 +67,21 @@ class _SplitterPrototype:
         """ Return options of the splitter"""
         return ""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<splitter name='{}'{}/>".format(self.__class__.__name__, self._repr_options())
 
-    def read_line(self, line, reader):
+    def read_line(self, line, reader) -> Dict[str, str]:
         line = line.split(self.column_marker)
         return reader.map(line)
 
+    def __call__(self, *args, **kwargs) -> bool:
+        raise NotImplemented
 
-class _DispatcherRandom:
-    @staticmethod
-    def dispatch(units_count, test_ratio=0.2, dev_ratio=0.0001):
-        """ Get the ratios and builds a list of targets completely randomly and shuffled
-
-        :param units_count: Number of units to dispatch (either sentence or dispatch depending on self.splitter)
-        :param test_ratio: Ratio of data to be put in test
-        :param dev_ratio: Ratio of data to be put in dev
-        :return: List of dataset to dispatch to
-        """
-
-        train_number = units_count
-        dev_number = 0
-        if dev_ratio > 0.01:
-            dev_number = int(math.ceil(dev_ratio * units_count))
-            train_number = train_number - dev_number
-        test_number = int(math.ceil(test_ratio * units_count))
-        train_number = train_number - test_number
-
-        target_dataset = ["test"] * test_number + ["train"] * (train_number) + ["dev"] * dev_number
-        random.shuffle(target_dataset)
-        return target_dataset
+    def set_targets(self, targets: List[str]) -> None:
+        pass
 
 
-class _DispatcherSequential:
-    @staticmethod
-    def dispatch(units_count, test_ratio=0.2, dev_ratio=0.0001):
-        """ Get the ratios and builds a list of targets completely randomly and shuffled
-
-        :param units_count: Number of units to dispatch (either sentence or dispatch depending on self.splitter)
-        :param test_ratio: Ratio of data to be put in test
-        :param dev_ratio: Ratio of data to be put in dev
-        :return: List of dataset to dispatch to
-        """
-
-        train_number = units_count
-        dev_number = 0
-        if dev_ratio > 0.01:
-            dev_number = int(math.ceil(dev_ratio * units_count))
-            train_number = train_number - dev_number
-        test_number = int(math.ceil(test_ratio * units_count))
-        train_number = train_number - test_number
-
-        target_dataset = ["train"] * (train_number + 1) + ["test"] * test_number + ["dev"] * dev_number
-        return target_dataset
-
-
-class PunctuationSplitter(_SplitterPrototype, _DispatcherRandom):
+class PunctuationSplitter(_SplitterPrototype):
     def __init__(self, column_marker="\t", sentence_splitter=DEFAULT_SENTENCE_MARKERS, **kwargs):
         """ Returns true if the line is a sentence splitter by being empty
 
@@ -101,7 +102,7 @@ class PunctuationSplitter(_SplitterPrototype, _DispatcherRandom):
         ]))
 
 
-class LineSplitter(_SplitterPrototype, _DispatcherRandom):
+class LineSplitter(_SplitterPrototype):
     def __init__(self, **kwargs):
         """ Class for applying a split on new lines (some data are formatted such as sentence are separated
         with empty lines
@@ -125,7 +126,7 @@ class LineSplitter(_SplitterPrototype, _DispatcherRandom):
         self.last_line_was_empty = True
 
 
-class TokenWindowSplitter(_SplitterPrototype, _DispatcherRandom):
+class TokenWindowSplitter(_SplitterPrototype):
     def __init__(self, window=20, **kwargs):
         """ Class for applying a split every N words
 
@@ -151,13 +152,64 @@ class TokenWindowSplitter(_SplitterPrototype, _DispatcherRandom):
         self.words = 0
 
 
-class FileSplitter(_SplitterPrototype, _DispatcherSequential):
-    def __init__(self, **kwargs):
+class FileSplitter(_SplitterPrototype):
+    def __init__(self, *args, **kwargs):
         """ Splitter that affects the file globally. Not expecting random shuffle.
         The real main piece of this splitter is actually the line_counting function
         """
-
+        super(FileSplitter, self).__init__(self, *args, **kwargs)
+        self.line_count = 0
+        self._sets_size: Dict[str, int] = {}
+        self._dispatching: bool = False  #
+        self._sizes: Optional[List[int]] = None
+        
     def __call__(self, line):
-        if line == "\n":
+        if not line.strip():
             return False
-        return True
+
+        if not self._dispatching:  # If we are counting lines
+            return True
+
+        if self._sizes:
+            self._sizes[0] -= 1
+            # If we still have something in our size, we reduce the number
+            if self._sizes[0]:
+                return False
+            else:
+                self._sizes.pop(0)
+                return True
+        else:
+            raise Exception("Sizes should be set and were not found")
+
+    def reset(self) -> None:
+        print("Reset")
+        self.line_count = 0
+        self._dispatching = True
+        self._sizes: List[int] = [
+            self._sets_size.get("train", 0),
+            self._sets_size.get("dev", 0),
+            self._sets_size.get("test", 0),
+        ]
+
+    def dispatch(self, units_count, test_ratio=0.2, dev_ratio=0.0001) -> List[str]:
+        """ Get the ratios and builds a list of targets completely randomly and shuffled
+
+        :param units_count: Number of units to dispatch (either sentence or dispatch depending on self.splitter)
+        :param test_ratio: Ratio of data to be put in test
+        :param dev_ratio: Ratio of data to be put in dev
+        :return: List of dataset to dispatch to
+        """
+        train_number = units_count
+        dev_number = 0
+        if dev_ratio > 0.01:
+            dev_number = int(math.ceil(dev_ratio * units_count))
+            train_number = train_number - dev_number
+        test_number = int(math.ceil(test_ratio * units_count))
+        train_number = train_number - test_number
+
+        target_dataset = ["train"] * train_number + ["test"] * test_number + ["dev"] * dev_number
+        self._sets_size = {
+            key: target_dataset.count(key)
+            for key in filter(lambda x: x in target_dataset, ["train", "dev", "test"])
+        }
+        return list(filter(lambda x: x in target_dataset, ["train", "dev", "test"]))

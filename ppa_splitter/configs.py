@@ -59,7 +59,7 @@ class CorpusConfiguration:
         self.column_marker: str = _spliter_options["column_marker"]
 
         # We set up the splitter
-        self.splitter = self.SPLITTERS.get(self.splitter_name, None)
+        self.splitter: _SplitterPrototype = self.SPLITTERS.get(self.splitter_name, None)
         if self.splitter is None:
             raise ValueError("Splitter '{}' is not in the acceptable list: {}".format(
                 self.splitter_name, ", ".join(list(self.SPLITTERS.keys()))
