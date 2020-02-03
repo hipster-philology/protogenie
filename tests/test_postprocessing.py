@@ -1,7 +1,7 @@
-from .test_splitter import TestConfigs
+from .helpers import _TestHelper
 
 
-class TestPostProcessing(TestConfigs):
+class TestPostProcessing(_TestHelper):
     def test_disambiguation(self):
         self._dispatch(
             output_dir="./tests/tests_output/",

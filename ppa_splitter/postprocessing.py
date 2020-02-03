@@ -1,7 +1,10 @@
-from .reader import Reader
+if False:
+    from .configs import CorpusConfiguration
 import tempfile
 import regex as re
 from xml.etree.ElementTree import Element
+import csv
+from typing import List
 
 
 class Disambiguation(object):
@@ -10,21 +13,32 @@ class Disambiguation(object):
         self.disambiguation_key: str = disambiguation_key
         self.match_pattern: re.Regex = re.compile(match_pattern)
 
-    def disambiguate(self, file_path: str, reader: Reader):
-        temp = tempfile.TemporaryFile()  # 2
+    def disambiguate(self, file_path: str, config: "CorpusConfiguration"):
+        temp = tempfile.TemporaryFile(mode="w+")  # 2
 
         try:
             with open(file_path) as file:
-                for nb_line, line in enumerate(file.read()):  # The file should already have been open
+                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                header: List[str] = []
+                for nb_line, line in enumerate(csv_reader):  # The file should already have been open
                     if nb_line == 0:
-                        temp.write(line)
+                        temp.write(config.column_marker.join(line+[self.disambiguation_key])+"\n")
+                        header = line
                         continue
-                    lemma_column = reader.read(line)
-                    found = self.match_pattern.findall(lemma_column)
-                    if found:
-                        print(found)
-                    temp.write(line)
+                    elif not line:
+                        temp.write("\n")
+                        continue
+                    lines = dict(zip(header, line))
 
+                    found = self.match_pattern.findall(lines[self.lemma_key])
+                    if found:
+                        lines[self.disambiguation_key] = found[0]
+                        lines[self.lemma_key] = self.match_pattern.sub("", lines[self.lemma_key])
+                        print(lines)
+                    temp.write(config.column_marker.join(list(lines.values()))+"\n")
+            with open(file_path, "w") as f:
+                temp.seek(0)
+                f.write(temp.read())
         finally:
             temp.close()  # 5
 

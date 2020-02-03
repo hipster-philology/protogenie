@@ -8,6 +8,7 @@ from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, F
 from .cli_utils import check_files
 from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
+from .postprocessing import Disambiguation
 
 Splitter = Type[_SplitterPrototype]
 
@@ -128,6 +129,7 @@ class PPAConfiguration:
                  corpora: Dict[str, CorpusConfiguration],
                  postprocessing=None,
                  memory: Optional[str] = None,
+                 disambiguation: Optional[Disambiguation] = None,
                  **kwargs
                  ):
         self.path: str = path
@@ -135,7 +137,7 @@ class PPAConfiguration:
 
         self.memory: Optional[str] = memory
         self.corpora: Dict[str, CorpusConfiguration] = corpora
-
+        self.disambiguation: Optional[Disambiguation] = disambiguation
         self.postprocessing = postprocessing
 
     @classmethod
@@ -161,5 +163,7 @@ class PPAConfiguration:
         if len(xml.findall("./memory")):
             kwargs["memory"] = xml.find("./memory").get("path")
 
+        if len(xml.findall("./postprocessing/disambiguation")):
+            kwargs["disambiguation"] = Disambiguation.from_xml(xml.find("./postprocessing/disambiguation"))
 
         return cls(path=filepath, corpora=corpora, **kwargs)

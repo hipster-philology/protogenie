@@ -73,6 +73,7 @@ def split_files(
             current_config.splitter.set_targets(target_dataset)
 
             header_line = []
+            created_files = set()
             with open(file) as f:
                 sentence = []
                 blanks = 0
@@ -129,10 +130,14 @@ def split_files(
             for dataset, tokens in training_tokens.items():
                 if tokens:
                     trg = get_name(output_folder, dataset, file)
+                    created_files.add(trg)  # We add the file to the one we created
                     with open(trg) as f:
                         content = f.read()
                     with open(trg, "w") as f:
                         f.write(current_config.column_marker.join(header_line)+"\n"+content)
             yield file, training_tokens
+
+            for output_file in created_files:
+                config.disambiguation.disambiguate(output_file, current_config)
     if memory:
         memory_file.close()
