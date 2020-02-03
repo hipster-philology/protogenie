@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any, Type
+from typing import Dict, Optional, Any, Type, List
 from yaml import load, dump
 import os.path
 import xml.etree.ElementTree as ET
@@ -8,7 +8,7 @@ from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, F
 from .cli_utils import check_files
 from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
-from .postprocessing import Disambiguation
+from .postprocessing import Disambiguation, ReplacementSet
 
 Splitter = Type[_SplitterPrototype]
 
@@ -127,9 +127,9 @@ class PPAConfiguration:
     def __init__(self,
                  path: str,
                  corpora: Dict[str, CorpusConfiguration],
-                 postprocessing=None,
                  memory: Optional[str] = None,
                  disambiguation: Optional[Disambiguation] = None,
+                 replacement_sets: List[ReplacementSet] = None,
                  **kwargs
                  ):
         self.path: str = path
@@ -138,7 +138,7 @@ class PPAConfiguration:
         self.memory: Optional[str] = memory
         self.corpora: Dict[str, CorpusConfiguration] = corpora
         self.disambiguation: Optional[Disambiguation] = disambiguation
-        self.postprocessing = postprocessing
+        self.replacement_sets: List[ReplacementSet] = replacement_sets or []
 
     @classmethod
     def from_xml(cls, filepath: str) -> "PPAConfiguration":
@@ -165,5 +165,11 @@ class PPAConfiguration:
 
         if len(xml.findall("./postprocessing/disambiguation")):
             kwargs["disambiguation"] = Disambiguation.from_xml(xml.find("./postprocessing/disambiguation"))
+
+        if len(xml.findall("./postprocessing/replacement")):
+            kwargs["replacement_sets"] = [
+                ReplacementSet.from_xml(node)
+                for node in xml.findall("./postprocessing/replacement")
+            ]
 
         return cls(path=filepath, corpora=corpora, **kwargs)

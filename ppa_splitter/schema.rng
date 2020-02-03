@@ -43,43 +43,62 @@
                 <zeroOrMore>
                     <ref name="replace"/>
                 </zeroOrMore>
+                <zeroOrMore>
+                    <ref name="skip"/>
+                </zeroOrMore>
                 <optional>
                     <ref name="disambiguation"/>
                 </optional>
             </interleave>
         </element>
     </define>
+    <define name="matchPattern">
+        <attribute name="matchPattern">
+            <a:documentation>Python regular expression valid with `regex` package</a:documentation>
+            <data type="string" />
+        </attribute>
+    </define>
+    <define name="skip">
+        <element name="skip">
+            <a:documentation>Removes a line if it matches @matchPattern</a:documentation>
+            <ref name="matchPattern" />
+            <empty />
+        </element>
+    </define>
     <define name="replace">
         <element name="replacement">
-            <attribute name="matchPattern">
-                <data type="string"/>
-            </attribute>
+            <ref name="matchPattern" />
             <attribute name="replacementPattern">
                 <data type="string"/>
             </attribute>
-            <element name="applyTo">
-                <attribute name="source">
-                    <a:documentation>Column name</a:documentation>
-                    <text/>
-                </attribute>
-                <attribute name="target">
-                    <a:documentation>Column name</a:documentation>
-                    <text/>
-                </attribute>
-            </element>
+            <oneOrMore>
+                <element name="applyTo">
+                    <a:documentation>If source is different from target, groupes are deleted in source</a:documentation>
+                    <attribute name="source">
+                        <a:documentation>Column name</a:documentation>
+                        <text/>
+                    </attribute>
+                    <oneOrMore>
+                        <element name="target">
+                            <a:documentation>Column name</a:documentation>
+                            <text/>
+                        </element>
+                    </oneOrMore>
+                </element>
+            </oneOrMore>
         </element>
     </define>
     <define name="disambiguation">
         <element name="disambiguation">
-            <attribute name="lemma-column-name">
-                <data type="string"/>
-            </attribute>
-            <attribute name="matchPattern">
-                <data type="string"/>
-            </attribute>
-            <attribute name="disambiguation-column-name">
-                <data type="string"/>
-            </attribute>
+            <interleave>
+               <attribute name="lemma-column-name">
+                   <data type="string"/>
+               </attribute>
+               <ref name="matchPattern" />
+               <attribute name="disambiguation-column-name">
+                   <data type="string"/>
+               </attribute>
+            </interleave>
         </element>
     </define>
     <define name="corpora">

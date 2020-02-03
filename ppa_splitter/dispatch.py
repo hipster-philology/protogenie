@@ -141,5 +141,10 @@ def split_files(
             if config.disambiguation:
                 for output_file in created_files:
                     config.disambiguation.disambiguate(output_file, current_config)
+
+            if config.replacement_sets:
+                for output_file in created_files:
+                    for replacement in config.replacement_sets:
+                        replacement.replace(output_file, current_config)
     if memory:
         memory_file.close()
