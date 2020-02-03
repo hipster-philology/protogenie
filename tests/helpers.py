@@ -5,11 +5,12 @@ import contextlib, io
 from typing import List, Tuple, Optional
 
 from ppa_splitter.cli import dispatch
+from os import getenv
 
 
 class _TestHelper(TestCase):
     def setUp(self):
-        self.verbose = True
+        self.verbose = getenv("VERBOSE_TESTS", "0") == "1"  # Allows for more debugging during tests
         files = glob.glob("./tests/tests_output/**/*.*")
         for file in files:
             os.remove(file)

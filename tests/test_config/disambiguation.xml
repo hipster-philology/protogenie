@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="../../ppa_splitter/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <config>
+    <output>
+        <header>
+            <key>token</key>
+            <key>lemma</key>
+            <key>pos</key>
+            <key>lemma-disambiguation-index</key>
+        </header>
+    </output>
     <postprocessing>
         <disambiguation matchPattern="(\d+)$" lemma-column-name="lemma" disambiguation-column-name="lemma-disambiguation-index"/>
     </postprocessing>

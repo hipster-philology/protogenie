@@ -67,8 +67,7 @@ class TestConfigs(_TestHelper):
         )
 
     def test_sentence(self):
-
-        dispatch(
+        self._dispatch(
             output_dir="./tests/tests_output/",
             clear=False,
             train=0.8,
@@ -76,31 +75,12 @@ class TestConfigs(_TestHelper):
             test=0.1,
             config="./tests/test_config/sentence.xml"
         )
-        chunk_length = []
-        # Normally, we can expect with the random seed that nothing changed.
-        with self.open("train", "sentence.tsv") as f:
-            content = f.read()
-            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
-            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
-            f.seek(0)
-            train = self.get_chunk_size(f)
-            chunk_length.extend(train)
 
-        with self.open("test", "sentence.tsv") as f:
-            content = f.read()
+        def test_header(content):
             self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
             self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
-            f.seek(0)
-            test = self.get_chunk_size(f)
-            chunk_length.extend(test)
 
-        with self.open("dev", "sentence.tsv") as f:
-            content = f.read()
-            self.assertFalse(content.startswith("lem\t"), "The header should not have been kept")
-            self.assertTrue(content.startswith("lemma\tPOS\ttoken"), "Header should have been mapped")
-            f.seek(0)
-            dev = self.get_chunk_size(f)
-            chunk_length.extend(test)
+        chunk_length, train, test, dev = self.parse_files("sentence.tsv", file_test=test_header)
 
         self.assertEqual(
             chunk_length, [19]*10,
