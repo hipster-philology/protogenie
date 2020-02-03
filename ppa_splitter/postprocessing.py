@@ -34,7 +34,6 @@ class Disambiguation(object):
                     if found:
                         lines[self.disambiguation_key] = found[0]
                         lines[self.lemma_key] = self.match_pattern.sub("", lines[self.lemma_key])
-                        print(lines)
                     temp.write(config.column_marker.join(list(lines.values()))+"\n")
             with open(file_path, "w") as f:
                 temp.seek(0)

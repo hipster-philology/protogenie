@@ -9,9 +9,10 @@ import csv
 
 def split_files(
         config: PPAConfiguration, output_folder: str, dev_ratio: float, test_ratio: float,
-        verbose: bool =True):
+        verbose: bool = True):
     """ Dispatch sentence for each file in files
 
+    :param config: Configuration for PPA Splitter
     :param output_folder: Folder where the data should be saved
     :param dev_ratio: Ratio of data to put in dev
     :param test_ratio: Ratio of data to put in test
@@ -137,7 +138,8 @@ def split_files(
                         f.write(current_config.column_marker.join(header_line)+"\n"+content)
             yield file, training_tokens
 
-            for output_file in created_files:
-                config.disambiguation.disambiguate(output_file, current_config)
+            if config.disambiguation:
+                for output_file in created_files:
+                    config.disambiguation.disambiguate(output_file, current_config)
     if memory:
         memory_file.close()

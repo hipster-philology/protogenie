@@ -63,7 +63,7 @@ if False:
                 rand3=randomString(start="tok_", length=10)
             ))
 
-if True:
+if False:
     with open("disambiguation.tsv", "w") as f:
         for lines in range(150):
             f.write("{rand1}\t{rand2}\t{rand3}\n".format(

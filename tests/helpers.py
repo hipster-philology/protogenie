@@ -1,8 +1,10 @@
 from unittest import TestCase
 import os
 import glob
-import contextlib, io
-from typing import List, Tuple, Optional
+import contextlib
+import io
+import csv
+from typing import List, Tuple, Optional, Generator, Dict
 
 from ppa_splitter.cli import dispatch
 from os import getenv
@@ -76,3 +78,12 @@ class _TestHelper(TestCase):
                 chunk_length.extend(test)
 
         return chunk_length, train, test, dev
+
+    def read_file(self, directory: str, filename: str, delimiter: str = "\t") -> Generator[Dict[str, str], None, None]:
+        with open(self.path(directory, filename)) as f:
+            header = []
+            for line_no, line in enumerate(csv.reader(f, delimiter=delimiter)):
+                if line_no == 0:
+                    header = line
+                else:
+                    yield dict(zip(header, line))

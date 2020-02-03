@@ -1,31 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<grammar 
-    xmlns="http://relaxng.org/ns/structure/1.0"
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
     xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
     datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
     <start>
         <element name="config">
-            <a:documentation>Configuration for PPA Splitter (See https://github.com/hipster-philology/ppa-spliter</a:documentation>
+            <a:documentation>Configuration for PPA Splitter (See
+                https://github.com/hipster-philology/ppa-spliter</a:documentation>
             <interleave>
-                <ref name="post-processing" />
-                <ref name="corpora" />
+                <ref name="post-processing"/>
+                <ref name="corpora"/>
+                <ref name="output"/>
                 <element name="default-header">
                     <a:documentation>Default header (to avoid duplication)</a:documentation>
-                    <ref name="header" />
+                    <ref name="header"/>
                 </element>
                 <element name="memory">
-                    <a:documentation>Save or load indexes of lines saved in different file. CSV file</a:documentation>
+                    <a:documentation>Save or load indexes of lines saved in different file. CSV
+                        file</a:documentation>
                     <ref name="path"/>
                 </element>
             </interleave>
         </element>
     </start>
+    <define name="output">
+        <element name="output">
+            <element name="header">
+                <oneOrMore>
+                    <element name="key">
+                        <optional>
+                            <ref name="map-to"/>
+                        </optional>
+                        <data type="string"/>
+                    </element>
+                </oneOrMore>
+            </element>
+        </element>
+    </define>
     <define name="post-processing">
         <a:documentation>Steps for post-processing a single file</a:documentation>
         <element name="postprocessing">
             <interleave>
                 <zeroOrMore>
-                    <ref name="replace" />
+                    <ref name="replace"/>
                 </zeroOrMore>
                 <optional>
                     <ref name="disambiguation"/>
@@ -35,45 +51,59 @@
     </define>
     <define name="replace">
         <element name="replacement">
-            <attribute name="matchPattern"><data type="string"></data></attribute>
-            <attribute name="replacementPattern"><data type="string"></data></attribute>
+            <attribute name="matchPattern">
+                <data type="string"/>
+            </attribute>
+            <attribute name="replacementPattern">
+                <data type="string"/>
+            </attribute>
             <element name="applyTo">
-              <attribute name="source">
-                  <a:documentation>Column name</a:documentation>
-                  <text></text>
-              </attribute>
-              <attribute name="target">
-                  <a:documentation>Column name</a:documentation>
-                  <text></text>
-              </attribute>
+                <attribute name="source">
+                    <a:documentation>Column name</a:documentation>
+                    <text/>
+                </attribute>
+                <attribute name="target">
+                    <a:documentation>Column name</a:documentation>
+                    <text/>
+                </attribute>
             </element>
-            
         </element>
     </define>
     <define name="disambiguation">
         <element name="disambiguation">
-            <attribute name="lemma-column-name"><data type="string"/></attribute>
-            <attribute name="matchPattern"><data type="string"></data></attribute>
-            <attribute name="disambiguation-column-name"><data type="string"/></attribute>
+            <attribute name="lemma-column-name">
+                <data type="string"/>
+            </attribute>
+            <attribute name="matchPattern">
+                <data type="string"/>
+            </attribute>
+            <attribute name="disambiguation-column-name">
+                <data type="string"/>
+            </attribute>
         </element>
     </define>
     <define name="corpora">
-        <a:documentation>This contains all corpora that should be split by PPA Splitter</a:documentation>
+        <a:documentation>This contains all corpora that should be split by PPA
+            Splitter</a:documentation>
         <element name="corpora">
-            <oneOrMore><ref name="corpus" /></oneOrMore>
+            <oneOrMore>
+                <ref name="corpus"/>
+            </oneOrMore>
         </element>
     </define>
     <define name="corpus">
         <element name="corpus">
-            <a:documentation>A corpus consist of a single file that should be split, or a UNIX-like path such as mydata/*.tsv</a:documentation>
+            <a:documentation>A corpus consist of a single file that should be split, or a UNIX-like
+                path such as mydata/*.tsv</a:documentation>
             <ref name="path"/>
             <attribute name="column_marker">
-                <a:documentation>Strings that separates columns in the CSV. TAB is for tabulation</a:documentation>
+                <a:documentation>Strings that separates columns in the CSV. TAB is for
+                    tabulation</a:documentation>
                 <data type="string"/>
             </attribute>
             <interleave>
-               <ref name="splitter" />
-               <ref name="header" />
+                <ref name="splitter"/>
+                <ref name="header"/>
             </interleave>
         </element>
     </define>
@@ -82,25 +112,34 @@
             <choice>
                 <group>
                     <a:documentation>Use the config/default-header</a:documentation>
-                    <attribute name="type"><value>default</value></attribute>
+                    <attribute name="type">
+                        <value>default</value>
+                    </attribute>
                 </group>
                 <group>
                     <a:documentation>Use this when the CSV has columns headers</a:documentation>
-                    <attribute name="type"><value>explicit</value></attribute>
+                    <attribute name="type">
+                        <value>explicit</value>
+                    </attribute>
                     <oneOrMore>
                         <element name="key">
-                            <optional><ref name="map-to"/></optional>
-                            <data type="string" />
+                            <optional>
+                                <ref name="map-to"/>
+                            </optional>
+                            <data type="string"/>
                         </element>
                     </oneOrMore>
                 </group>
                 <group>
-                    <a:documentation>Use this when the CSV has no columns headers. Requires mapping</a:documentation>
-                    <attribute name="type"><value>order</value></attribute>
+                    <a:documentation>Use this when the CSV has no columns headers. Requires
+                        mapping</a:documentation>
+                    <attribute name="type">
+                        <value>order</value>
+                    </attribute>
                     <oneOrMore>
                         <element name="key">
                             <ref name="map-to"/>
-                            <data type="int" />
+                            <data type="int"/>
                         </element>
                     </oneOrMore>
                 </group>
@@ -108,14 +147,16 @@
         </element>
     </define>
     <define name="map-to">
-        <attribute name="map-to"><data type="string"></data></attribute>
+        <attribute name="map-to">
+            <data type="string"/>
+        </attribute>
     </define>
     <define name="splitter">
         <element name="splitter">
             <choice>
                 <group>
-                    <a:documentation>The token window splitter splits each @window tokens and dispatch
-                        things into different datasets</a:documentation>
+                    <a:documentation>The token window splitter splits each @window tokens and
+                        dispatch things into different datasets</a:documentation>
                     <attribute name="name">
                         <value>token_window</value>
                     </attribute>
@@ -136,7 +177,8 @@
                     <value>empty_line</value>
                 </attribute>
                 <attribute name="name">
-                    <a:documentation>The file is globally split in two or three, depending on the number of datasets</a:documentation>
+                    <a:documentation>The file is globally split in two or three, depending on the
+                        number of datasets</a:documentation>
                     <value>file_split</value>
                 </attribute>
             </choice>
@@ -148,7 +190,7 @@
     <define name="documentation">
         <element name="documentation">
             <a:documentation>Used to explain choices</a:documentation>
-            <data type="string" />
+            <data type="string"/>
         </element>
     </define>
     <define name="path">
