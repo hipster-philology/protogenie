@@ -1,13 +1,28 @@
-Pandora Data Spliter
+Protogoneia
 ====================
 
+[![Coverage Status](https://coveralls.io/repos/github/hipster-philology/protogeneia/badge.svg?branch=master)](https://coveralls.io/github/hipster-philology/protogeneia?branch=master)
+[![Build Status](https://travis-ci.org/hipster-philology/protogeneia.svg?branch=master)](https://travis-ci.org/hipster-philology/protogeneia)
+[![PyPI](https://img.shields.io/pypi/v/protogeneia)](https://pypi.org/project/protogeneia)
 
-## Install
+## Install from release
+
+```bash
+pip install protogeneia
+```
+
+## Install unstable
+
+```bash
+pip install --upgrade https://github.com/hipster-philology/protogeneia/archive/master.zip
+```
+
+## Install from source
 
 Start by cloning the repository, and moving inside the created folder
 
 ```bash
-git clone https://github.com/hipster-philology/ppa-splitter.git
+git clone https://github.com/hipster-philology/protogeneia.git
 cd ppa-splitter/
 ```
 

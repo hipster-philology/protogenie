@@ -1,5 +1,4 @@
 from typing import Dict, Optional, Any, Type, List
-from yaml import load, dump
 import os.path
 import xml.etree.ElementTree as ET
 from copy import deepcopy
@@ -95,33 +94,6 @@ class CorpusConfiguration:
         :return: List of dataset name targets (list of "train", "test" and "dev")
         """
         return self.splitter.dispatch(units_count, test_ratio=test_ratio, dev_ratio=dev_ratio)
-
-    @classmethod
-    def generate_blank(cls, target_files, yaml_file="empty.yaml", input_file=None):
-        """ Generate a blank configuration with all necessary fields
-
-        :param target_files: Which file should be configured by the yaml file
-        :param yaml_file: Where to save the configuration
-        :param input_file: Previously existing configuration that we want to reuse
-        """
-        files = check_files(target_files)
-        config = {}
-
-        if input_file:
-            with open(input_file) as input_file_io:
-                config.update(load(input_file_io))
-
-        _default = deepcopy(DEFAULT_CONFIG_VALUES)
-        _default["splitter"] = ",".join(sorted(list(CorpusConfiguration.SPLITTERS)))
-
-        config = {
-            file: deepcopy(_default)
-            for file in files
-            if file not in config
-        }
-
-        with open(yaml_file, "w") as f:
-            dump(config, f, default_flow_style=False)
 
 
 class PPAConfiguration:

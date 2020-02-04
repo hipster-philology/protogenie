@@ -3,6 +3,7 @@ datasets/
 output/
 ./*.yaml
 memory.csv
+memory*.csv
 new.yaml
 tests/tests_output
 

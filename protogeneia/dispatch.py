@@ -82,7 +82,7 @@ def split_files(
                     if line_no == 0:
                         if current_config.reader.has_header:
                             header_line = [current_config.reader.map_to[key]
-                                           for key in line.strip().split(current_config.column_marker)]
+                                           for key in line.strip().split(current_config.column_marker) if key]
                             continue
                         else:
                             header_line = current_config.reader.header

@@ -6,7 +6,7 @@ import csv
 import contextlib, io
 from typing import List, Tuple, Optional
 from .helpers import _TestHelper
-from ppa_splitter.cli import dispatch
+from protogeneia.cli import dispatch
 
 random.seed(78000)
 
@@ -15,7 +15,7 @@ class TestConfigs(_TestHelper):
     def test_windows(self):
         output = self._dispatch(
             output_dir="./tests/tests_output/",
-            clear=False,
+
             train=0.8,
             dev=0,
             test=0.2,
@@ -40,7 +40,7 @@ class TestConfigs(_TestHelper):
     def test_windows_with_dev(self):
         output = self._dispatch(
             output_dir="./tests/tests_output/",
-            clear=False,
+
             train=0.8,
             dev=0.1,
             test=0.1,
@@ -69,7 +69,7 @@ class TestConfigs(_TestHelper):
     def test_sentence(self):
         self._dispatch(
             output_dir="./tests/tests_output/",
-            clear=False,
+
             train=0.8,
             dev=0.1,
             test=0.1,
@@ -98,7 +98,7 @@ class TestConfigs(_TestHelper):
     def test_empty_line(self):
         output = self._dispatch(
                 output_dir="./tests/tests_output/",
-                clear=False,
+
                 train=0.8,
                 dev=0.1,
                 test=0.1,
@@ -135,7 +135,7 @@ class TestConfigs(_TestHelper):
         """Test that splitting file works """
         output = self._dispatch(
             output_dir="./tests/tests_output/",
-            clear=False,
+
             train=0.8,
             dev=0.1,
             test=0.1,
@@ -172,7 +172,7 @@ class TestConfigs(_TestHelper):
         """Test that implicit header mapping is correct"""
         output = self._dispatch(
             output_dir="./tests/tests_output/",
-            clear=False,
+
             train=0.8,
             dev=0.1,
             test=0.1,

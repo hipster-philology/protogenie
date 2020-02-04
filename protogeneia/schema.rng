@@ -7,7 +7,7 @@
             <a:documentation>Configuration for PPA Splitter (See
                 https://github.com/hipster-philology/ppa-spliter</a:documentation>
             <interleave>
-                <ref name="post-processing"/>
+                <optional><ref name="post-processing"/></optional>
                 <ref name="corpora"/>
                 <ref name="output"/>
                 <element name="default-header">

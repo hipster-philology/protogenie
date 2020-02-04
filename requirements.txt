@@ -1,2 +1,2 @@
-pyyaml
 regex
+click>=7.0,<=8.0

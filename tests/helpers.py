@@ -6,7 +6,7 @@ import io
 import csv
 from typing import List, Tuple, Optional, Generator, Dict
 
-from ppa_splitter.cli import dispatch
+from protogeneia.cli import dispatch
 from os import getenv
 
 
