@@ -115,3 +115,48 @@ class ReplacementSet(object):
             replacement_pattern=replacement_node.attrib["replacementPattern"],
             applies_to=[ApplyTo.from_xml(node) for node in replacement_node.findall("applyTo")]
         )
+
+
+class Skip(object):
+    def __init__(
+        self, match_pattern: str, target: str
+    ):
+        self.match_pattern: re.Regex = re.compile(match_pattern)
+        self.target: str = target
+
+    def replace(self, file_path: str, config: "CorpusConfiguration"):
+        temp = tempfile.TemporaryFile(mode="w+")  # 2
+
+        try:
+            with open(file_path) as file:
+                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                header: List[str] = []
+                for nb_line, line in enumerate(csv_reader):  # The file should already have been open
+                    if nb_line == 0:
+                        temp.write(config.column_marker.join(line)+"\n")
+                        header = line
+                        continue
+                    elif not line:
+                        temp.write("\n")
+                        continue
+
+                    lines = dict(zip(header, line))
+
+                    # If it matches, we skip it
+                    if not self.match_pattern.search(lines[self.target]):
+                        continue
+
+                    temp.write(config.column_marker.join(list(lines.values()))+"\n")
+
+            with open(file_path, "w") as f:
+                temp.seek(0)
+                f.write(temp.read())
+        finally:
+            temp.close()  # 5
+
+    @staticmethod
+    def from_xml(skip_node: Element) -> "Skip":
+        return Skip(
+            match_pattern=skip_node.attrib["matchPattern"],
+            target=skip_node.attrib["target"]
+        )

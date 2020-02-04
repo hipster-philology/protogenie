@@ -8,9 +8,10 @@ from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, F
 from .cli_utils import check_files
 from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
-from .postprocessing import Disambiguation, ReplacementSet
+from .postprocessing import Disambiguation, ReplacementSet, Skip
 
 Splitter = Type[_SplitterPrototype]
+
 
 class CorpusConfiguration:
     SPLITTERS = {
@@ -130,6 +131,7 @@ class PPAConfiguration:
                  memory: Optional[str] = None,
                  disambiguation: Optional[Disambiguation] = None,
                  replacement_sets: List[ReplacementSet] = None,
+                 skips: List[Skip] = None,
                  **kwargs
                  ):
         self.path: str = path
@@ -139,6 +141,7 @@ class PPAConfiguration:
         self.corpora: Dict[str, CorpusConfiguration] = corpora
         self.disambiguation: Optional[Disambiguation] = disambiguation
         self.replacement_sets: List[ReplacementSet] = replacement_sets or []
+        self.skips: List[Skip] = skips or []
 
     @classmethod
     def from_xml(cls, filepath: str) -> "PPAConfiguration":
@@ -170,6 +173,12 @@ class PPAConfiguration:
             kwargs["replacement_sets"] = [
                 ReplacementSet.from_xml(node)
                 for node in xml.findall("./postprocessing/replacement")
+            ]
+
+        if len(xml.findall("./postprocessing/skip")):
+            kwargs["skips"] = [
+                Skip.from_xml(node)
+                for node in xml.findall("./postprocessing/skip")
             ]
 
         return cls(path=filepath, corpora=corpora, **kwargs)
