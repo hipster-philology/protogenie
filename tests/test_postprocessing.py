@@ -93,5 +93,5 @@ class TestPostProcessing(_TestHelper):
                 self.assertNotEqual(line["POS"], "PUNfrt", "There should not be a single dot in token")
                 tokens += 1
 
-        self.assertEqual(tokens, 200*0.8 - 200*0.25,
-                         "There should be 80% of total tokens - 10% of the whole that were removed")
+        self.assertEqual(tokens, 200*0.8*0.8,
+                         "There should be 80% of total tokens - 20% (1 of 5 char is a dot) that were removed")

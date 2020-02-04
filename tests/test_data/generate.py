@@ -103,13 +103,13 @@ if True:
     at_least_one_one = False
     with open("skip.tsv", "w") as f:
         for lines in range(200):
-            if lines + 1 % 10 == 0:
+            if (lines + 1) % 10 == 0:
                 f.write("{rand1}\t{rand2}\t{rand3}\n".format(
                     rand1="removed_by_pos",
                     rand2="PUNfrt",
                     rand3="lala"
                 ))
-            elif lines + 1 % 5 == 0:
+            elif (lines + 1) % 5 == 0:
                 f.write("{rand1}\t{rand2}\t{rand3}\n".format(
                     rand1=".",
                     rand2="removed_by_token",
