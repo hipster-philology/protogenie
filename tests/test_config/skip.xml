@@ -10,9 +10,10 @@
         </header>
     </output>
     <postprocessing>
-        <skip matchPattern="^\W+$" />
+        <skip matchPattern="^\W+$" target="form" />
+        <skip matchPattern="^PUN\w*$" target="POS" />
     </postprocessing>
-    <memory path="memory.csv" />
+    <memory path="memory-%date%-%file%.csv" />
     <default-header>
         <header type="order">
             <key map-to="form">2</key>
@@ -21,8 +22,8 @@
         </header>
     </default-header>
     <corpora>
-        <corpus path="../test_data/replacement.tsv" column_marker="TAB">
-            <splitter name="token_window" window="20"/>
+        <corpus path="../test_data/skip.tsv" column_marker="TAB">
+            <splitter name="empty_line"/>
             <header type="default" />
         </corpus>
     </corpora>

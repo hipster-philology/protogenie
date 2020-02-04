@@ -63,7 +63,7 @@ if False:
                 rand3=randomString(start="tok_", length=10)
             ))
 
-if True:
+if False:
     with open("disambiguation.tsv", "w") as f:
         for lines in range(150):
             f.write("{rand1}\t{rand2}\t{rand3}\n".format(
@@ -72,7 +72,7 @@ if True:
                 rand3=randomString(start="tok_", length=10)+str(random.randint(0, 10))
             ))
 
-if True:
+if False:
     at_least_one_zero = False
     at_least_one_one = False
     with open("replacement.tsv", "w") as f:
@@ -97,3 +97,30 @@ if True:
                     rand2=randomString(start="pos_", length=10),
                     rand3=randomString(start="tok_", length=10)
                 ))
+
+if True:
+    at_least_one_zero = False
+    at_least_one_one = False
+    with open("skip.tsv", "w") as f:
+        for lines in range(200):
+            if lines + 1 % 10 == 0:
+                f.write("{rand1}\t{rand2}\t{rand3}\n".format(
+                    rand1="removed_by_pos",
+                    rand2="PUNfrt",
+                    rand3="lala"
+                ))
+            elif lines + 1 % 5 == 0:
+                f.write("{rand1}\t{rand2}\t{rand3}\n".format(
+                    rand1=".",
+                    rand2="removed_by_token",
+                    rand3="."
+                ))
+            else:
+                f.write("{rand1}\t{rand2}\t{rand3}\n".format(
+                    rand1=randomString(start="lem_", length=10),
+                    rand2=randomString(start="pos_", length=10),
+                    rand3=randomString(start="tok_", length=10)
+                ))
+
+            if (lines + 1) % 20 == 0:
+                f.write("\n")

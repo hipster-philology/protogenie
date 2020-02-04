@@ -143,7 +143,7 @@ class Skip(object):
                     lines = dict(zip(header, line))
 
                     # If it matches, we skip it
-                    if not self.match_pattern.search(lines[self.target]):
+                    if self.match_pattern.search(lines[self.target]):
                         continue
 
                     temp.write(config.column_marker.join(list(lines.values()))+"\n")

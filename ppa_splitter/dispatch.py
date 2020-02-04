@@ -146,5 +146,10 @@ def split_files(
                 for output_file in created_files:
                     for replacement in config.replacement_sets:
                         replacement.replace(output_file, current_config)
+
+            if config.skips:
+                for output_file in created_files:
+                    for skip in config.skips:
+                        skip.replace(output_file, current_config)
     if memory:
         memory_file.close()
