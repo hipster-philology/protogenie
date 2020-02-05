@@ -20,5 +20,4 @@ def add_sentence(output_folder, dataset, filename, sentence):
     else:
         mode = "a"
     with open(filename, mode) as f:
-        f.write("".join(sentence)+"\n") # Add a secondary line break to keep things separated
-    
+        f.write("".join(sentence)+"\n")  # Add a secondary line break to keep things separated

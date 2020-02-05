@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../protogeneia/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<config>
+    <output>
+        <header>
+            <key>form</key>
+            <key>lemma</key>
+            <key>pos</key>
+            <key>lemma-disambiguation-index</key>
+        </header>
+    </output>
+    <postprocessing>
+        <replacement matchPattern="^[10]$" replacementPattern="1">
+            <!-- This should replace all 0 and 1 to a 1 both in form and in lemma
+                 This is designed to reduce the issue of sparsity / rarity of number examples while
+                 keeping the semantic of numbers.
+            -->
+            <applyTo source="form">
+                <target>form</target>
+                <target>lemma</target>
+            </applyTo>
+        </replacement>
+        <replacement matchPattern="^(?![01]$)\d+$" replacementPattern="3">
+            <!-- This should replace all numbers to a 3 both in form and in lemma
+                 This is designed to reduce the issue of sparsity / rarity of number examples while
+                 keeping the semantic of numbers.
+            -->
+            <applyTo source="form">
+                <target>form</target>
+                <target>lemma</target>
+            </applyTo>
+        </replacement>
+    </postprocessing>
+    <memory path="memory.csv" />
+    <default-header>
+        <header type="order">
+            <key map-to="form">2</key>
+            <key map-to="lemma">0</key>
+            <key map-to="POS">1</key>
+        </header>
+    </default-header>
+    <corpora>
+        <corpus path="../test_data/replacement.tsv" column_marker="TAB">
+            <splitter name="token_window" window="20"/>
+            <header type="default" />
+        </corpus>
+    </corpora>
+</config>

@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+    xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+    datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+    <start>
+        <element name="config">
+            <a:documentation>Configuration for PPA Splitter (See
+                https://github.com/hipster-philology/ppa-spliter</a:documentation>
+            <interleave>
+                <optional><ref name="post-processing"/></optional>
+                <ref name="corpora"/>
+                <!-- Optional for now -->
+                <optional><ref name="output"/></optional>
+                <element name="default-header">
+                    <a:documentation>Default header (to avoid duplication)</a:documentation>
+                    <ref name="header"/>
+                </element>
+                <element name="memory">
+                    <a:documentation>Save or load indexes of lines saved in different file. CSV
+                        file</a:documentation>
+                    <ref name="path"/>
+                </element>
+            </interleave>
+        </element>
+    </start>
+    <define name="output">
+        <element name="output">
+            <a:documentation>Columns that should and order for the collated file</a:documentation>
+            <element name="header">
+                <oneOrMore>
+                    <element name="key">
+                        <optional>
+                            <ref name="map-to"/>
+                        </optional>
+                        <data type="string"/>
+                    </element>
+                </oneOrMore>
+            </element>
+        </element>
+    </define>
+    <define name="post-processing">
+        <a:documentation>Steps for post-processing a single file</a:documentation>
+        <element name="postprocessing">
+            <interleave>
+                <zeroOrMore>
+                    <ref name="replace"/>
+                </zeroOrMore>
+                <zeroOrMore>
+                    <ref name="skip"/>
+                </zeroOrMore>
+                <zeroOrMore>
+                    <ref name="disambiguation"/>
+                </zeroOrMore>
+                <zeroOrMore>
+                    <ref name="toolbox"/>
+                </zeroOrMore>
+            </interleave>
+        </element>
+    </define>
+    <define name="toolbox">
+        <element name="toolbox">
+            <a:documentation>Functions pre-added to Protegeneia</a:documentation>
+            <choice>
+                <group>
+                    <a:documentation>Replace roman numerals by integers</a:documentation>
+                    <attribute name="name"><value>RomanNumeral</value></attribute>
+                    <ref name="applyTo" />
+                </group>
+            </choice>
+        </element>
+    </define>
+    <define name="matchPattern">
+        <attribute name="matchPattern">
+            <a:documentation>Python regular expression valid with `regex` package</a:documentation>
+            <data type="string" />
+        </attribute>
+    </define>
+    <define name="skip">
+        <element name="skip">
+            <a:documentation>Removes a line if it matches @matchPattern</a:documentation>
+            <interleave>
+                <ref name="matchPattern" />
+                <attribute name="source">
+                    <a:documentation>Node that should be match by matchPattern</a:documentation>
+                    <data type="string" />
+                </attribute>
+            </interleave>
+            <empty />
+        </element>
+    </define>
+    <define name="applyTo">
+        <element name="applyTo">
+            <a:documentation>If source is different from target, groupes are deleted in source</a:documentation>
+            <attribute name="source">
+                <a:documentation>Column name that should be the trigger of the function (eg. matched by matchPattern)</a:documentation>
+                <text/>
+            </attribute>
+            <oneOrMore>
+                <element name="target">
+                    <a:documentation>Column name that should be the receptacle of the operation (eg. receive de replacement value)</a:documentation>
+                    <text/>
+                </element>
+            </oneOrMore>
+        </element>
+    </define>
+    <define name="replace">
+        <element name="replacement">
+            <a:documentation>Automatic replacement of some values using utils function or simply regular expression</a:documentation>
+            <group>
+                <ref name="matchPattern" />
+                <attribute name="replacementPattern">
+                    <data type="string"/>
+                </attribute>
+            </group>
+            <oneOrMore>
+                <ref name="applyTo" />
+            </oneOrMore>
+        </element>
+    </define>
+    <define name="disambiguation">
+        <element name="disambiguation">
+            <a:documentation>Based on a source column, creates a new column that receives the group matched in @matchPattern. Is meant for
+            disambiguation but can be used for other things, such as named entities extraction and such.</a:documentation>
+            <interleave>
+               <attribute name="source-column">
+                   <a:documentation>Source column from which data should be matched and retrieved</a:documentation>
+                   <data type="string"/>
+               </attribute>
+               <ref name="matchPattern" />
+                <attribute name="new-column">
+                    <a:documentation>Name of the new column that will be created using the data from matchPattern</a:documentation>
+                   <data type="string"/>
+               </attribute>
+                <optional>
+                 <attribute name="keep">
+                     <a:documentation>Presence of keep will requires source to be left untouched, even if its match
+                     was extracted to new-colum</a:documentation>
+                     <empty />
+                 </attribute>
+                </optional>
+            </interleave>
+        </element>
+    </define>
+    <define name="corpora">
+        <a:documentation>This contains all corpora that should be split by Protogeneia</a:documentation>
+        <element name="corpora">
+            <oneOrMore>
+                <ref name="corpus"/>
+            </oneOrMore>
+        </element>
+    </define>
+    <define name="corpus">
+        <element name="corpus">
+            <a:documentation>A corpus consist of a single file that should be split, or a UNIX-like
+                path such as mydata/*.tsv</a:documentation>
+            <ref name="path"/>
+            <attribute name="column_marker">
+                <a:documentation>Strings that separates columns in the CSV. TAB is for
+                    tabulation</a:documentation>
+                <data type="string"/>
+            </attribute>
+            <interleave>
+                <ref name="splitter"/>
+                <ref name="header"/>
+            </interleave>
+        </element>
+    </define>
+    <define name="header">
+        <element name="header">
+            <choice>
+                <group>
+                    <a:documentation>Use the config/default-header</a:documentation>
+                    <attribute name="type">
+                        <value>default</value>
+                    </attribute>
+                </group>
+                <group>
+                    <a:documentation>Use this when the CSV has columns headers</a:documentation>
+                    <attribute name="type">
+                        <value>explicit</value>
+                    </attribute>
+                    <oneOrMore>
+                        <element name="key">
+                            <optional>
+                                <ref name="map-to"/>
+                            </optional>
+                            <data type="string"/>
+                        </element>
+                    </oneOrMore>
+                </group>
+                <group>
+                    <a:documentation>Use this when the CSV has no columns headers. Requires
+                        mapping</a:documentation>
+                    <attribute name="type">
+                        <value>order</value>
+                    </attribute>
+                    <oneOrMore>
+                        <element name="key">
+                            <ref name="map-to"/>
+                            <data type="int"/>
+                        </element>
+                    </oneOrMore>
+                </group>
+            </choice>
+        </element>
+    </define>
+    <define name="map-to">
+        <attribute name="map-to">
+            <data type="string"/>
+        </attribute>
+    </define>
+    <define name="splitter">
+        <element name="splitter">
+            <choice>
+                <group>
+                    <a:documentation>The token window splitter splits each @window tokens and
+                        dispatch things into different datasets</a:documentation>
+                    <attribute name="name">
+                        <value>token_window</value>
+                    </attribute>
+                    <attribute name="window">
+                        <data type="integer"/>
+                    </attribute>
+                </group>
+                <group>
+                    <attribute name="name">
+                        <value>punctuation</value>
+                    </attribute>
+                    <attribute name="sentence_markers">
+                        <data type="string"/>
+                    </attribute>
+                </group>
+                <attribute name="name">
+                    <a:documentation>Each empty line represent a new passage</a:documentation>
+                    <value>empty_line</value>
+                </attribute>
+                <attribute name="name">
+                    <a:documentation>The file is globally split in two or three, depending on the
+                        number of datasets</a:documentation>
+                    <value>file_split</value>
+                </attribute>
+            </choice>
+            <optional>
+                <ref name="documentation"/>
+            </optional>
+        </element>
+    </define>
+    <define name="documentation">
+        <element name="documentation">
+            <a:documentation>Used to explain choices</a:documentation>
+            <data type="string"/>
+        </element>
+    </define>
+    <define name="path">
+        <attribute name="path">
+            <a:documentation>Path to the file relative to the configuration file</a:documentation>
+            <data type="anyURI"/>
+        </attribute>
+    </define>
+</grammar>

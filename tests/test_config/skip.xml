@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../protogeneia/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<config>
+    <output>
+        <header>
+            <key>form</key>
+            <key>lemma</key>
+            <key>pos</key>
+            <key>lemma-disambiguation-index</key>
+        </header>
+    </output>
+    <postprocessing>
+        <skip matchPattern="^\W+$" source="form" />
+        <skip matchPattern="^PUN\w*$" source="POS" />
+    </postprocessing>
+    <memory path="memory.csv" />
+    <default-header>
+        <header type="order">
+            <key map-to="form">2</key>
+            <key map-to="lemma">0</key>
+            <key map-to="POS">1</key>
+        </header>
+    </default-header>
+    <corpora>
+        <corpus path="../test_data/skip.tsv" column_marker="TAB">
+            <splitter name="empty_line"/>
+            <header type="default" />
+        </corpus>
+    </corpora>
+</config>

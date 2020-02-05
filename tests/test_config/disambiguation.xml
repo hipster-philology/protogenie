@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="../../protogeneia/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<config>
+    <output>
+        <header>
+            <key>token</key>
+            <key>lemma</key>
+            <key>pos</key>
+            <key>lemma-disambiguation-index</key>
+        </header>
+    </output>
+    <postprocessing>
+        <disambiguation matchPattern="(\d+)$" source-column="lemma" new-column="lemma-disambiguation-index"/>
+    </postprocessing>
+    <memory path="memory.csv" />
+    <default-header>
+        <header type="order">
+            <key map-to="token">2</key>
+            <key map-to="lemma">0</key>
+            <key map-to="POS">1</key>
+        </header>
+    </default-header>
+    <corpora>
+        <corpus path="../test_data/disambiguation.tsv" column_marker="TAB">
+            <splitter name="file_split"/>
+            <header type="default" />
+        </corpus>
+    </corpora>
+</config>
