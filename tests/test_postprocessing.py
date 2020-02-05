@@ -97,9 +97,8 @@ class TestPostProcessing(_TestHelper):
 
     def test_roman_numbers(self):
         """ Check roman numbers validity """
-        self._dispatch(
+        _, config = self._dispatch(
             output_dir="./tests/tests_output/",
-
             train=0.8,
             dev=0.1,
             test=0.1,

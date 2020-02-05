@@ -13,7 +13,7 @@ random.seed(78000)
 
 class TestConfigs(_TestHelper):
     def test_windows(self):
-        output = self._dispatch(
+        output, config = self._dispatch(
             output_dir="./tests/tests_output/",
 
             train=0.8,
@@ -38,7 +38,7 @@ class TestConfigs(_TestHelper):
         )
 
     def test_windows_with_dev(self):
-        output = self._dispatch(
+        output, config = self._dispatch(
             output_dir="./tests/tests_output/",
 
             train=0.8,
@@ -96,7 +96,7 @@ class TestConfigs(_TestHelper):
         )
 
     def test_empty_line(self):
-        output = self._dispatch(
+        output, config = self._dispatch(
                 output_dir="./tests/tests_output/",
 
                 train=0.8,
@@ -133,7 +133,7 @@ class TestConfigs(_TestHelper):
 
     def test_file(self):
         """Test that splitting file works """
-        output = self._dispatch(
+        output, config = self._dispatch(
             output_dir="./tests/tests_output/",
 
             train=0.8,
@@ -170,7 +170,7 @@ class TestConfigs(_TestHelper):
 
     def test_implicit_header(self):
         """Test that implicit header mapping is correct"""
-        output = self._dispatch(
+        output, config = self._dispatch(
             output_dir="./tests/tests_output/",
 
             train=0.8,

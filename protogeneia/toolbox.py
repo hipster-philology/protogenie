@@ -9,7 +9,7 @@ from .postprocessing import ApplyTo, PostProcessing
 
 
 class RomanNumeral(PostProcessing):
-    NODE = "utils"
+    NodeName = "toolbox"
 
     def __init__(
             self, apply_to: ApplyTo
@@ -46,8 +46,8 @@ class RomanNumeral(PostProcessing):
                     lines = dict(zip(header, line))
 
                     if self.match_pattern.search(lines[self.apply_to.source]):
-                        original = {k: v for k, v in original.items()}
-                        result = self.from_roman(original[self.apply_to.source])
+                        # original = {k: v for k, v in lines.items()}
+                        result = str(self.from_roman(lines[self.apply_to.source]))
 
                         for target in self.apply_to.target:
                             # If source and target are the same, we simply replace source by target
@@ -89,4 +89,4 @@ class RomanNumeral(PostProcessing):
 
     @classmethod
     def match_config_node(cls, node: Element) -> bool:
-        return node.tag == cls.NodeName and node.get("function", "RomanNumerals")
+        return node.tag == cls.NodeName and node.get("name") == "RomanNumeral"

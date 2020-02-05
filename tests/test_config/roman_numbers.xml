@@ -27,7 +27,7 @@
     </default-header>
     <corpora>
         <corpus path="../test_data/roman_numbers.tsv" column_marker="TAB">
-            <splitter name="token_window" window="20"/>
+            <splitter name="empty_line"/>
             <header type="default" />
         </corpus>
     </corpora>

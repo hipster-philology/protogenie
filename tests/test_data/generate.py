@@ -164,5 +164,5 @@ if True:
                     rand3=randomString(start="tok_", length=10)
                 ))
 
-            if (lines + 1) % 20 == 0:
+            if (lines + 1) % 10 == 0: # Window of 10...
                 f.write("\n")

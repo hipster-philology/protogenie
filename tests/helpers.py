@@ -7,6 +7,7 @@ import csv
 from typing import List, Tuple, Optional, Generator, Dict
 
 from protogeneia.cli import dispatch
+from protogeneia.configs import PPAConfiguration
 from os import getenv
 
 
@@ -39,14 +40,14 @@ class _TestHelper(TestCase):
     def path(self, directory: str, file: str) -> str:
         return "./tests/tests_output/"+directory+"/"+file
 
-    def _dispatch(self, *args, **kwargs) -> str:
+    def _dispatch(self, *args, **kwargs) -> Tuple[str, PPAConfiguration]:
         f = io.StringIO()
         with contextlib.redirect_stdout(f):
-            dispatch(*args, **kwargs)
+            config = dispatch(*args, **kwargs)
         o = f.getvalue()
         if self.verbose:
             print(o)
-        return o
+        return o, config
 
     def parse_files(self, name: str, file_test: Optional = None) -> Tuple[List[int], List[int], List[int], List[int]]:
         chunk_length = []

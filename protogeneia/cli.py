@@ -57,7 +57,18 @@ def cli_dispatch(file, output, clear=False, train=0.8, dev=.0, test=0.2):
 
 def dispatch(
         train: float, test: float, dev: float, config: str, output_dir: str,
-        verbose=True, concat: bool = False):
+        verbose=True, concat: bool = False) -> PPAConfiguration:
+    """
+
+    :param train:
+    :param test:
+    :param dev:
+    :param config:
+    :param output_dir:
+    :param verbose:
+    :param concat:
+    :return: PPAConfiguration for test purposes
+    """
 
     train, test, dev = check_ratio(train, test, dev)
     config = PPAConfiguration.from_xml(config)
@@ -76,4 +87,6 @@ def dispatch(
         for key, value in ratios.items():
             if value:
                 print("\t{} tokens in {} dataset".format(value, key))
+
+    return config
 

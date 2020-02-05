@@ -7,7 +7,7 @@ from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, F
 from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
 from .postprocessing import Disambiguation, ReplacementSet, Skip, PostProcessing
-from .replacements_functions import RomanNumeral
+from .toolbox import RomanNumeral
 
 Splitter = Type[_SplitterPrototype]
 
