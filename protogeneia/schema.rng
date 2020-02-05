@@ -24,6 +24,7 @@
     </start>
     <define name="output">
         <element name="output">
+            <a:documentation>Columns that should and order for the collated file</a:documentation>
             <element name="header">
                 <oneOrMore>
                     <element name="key">
@@ -46,10 +47,22 @@
                 <zeroOrMore>
                     <ref name="skip"/>
                 </zeroOrMore>
-                <optional>
+                <zeroOrMore>
                     <ref name="disambiguation"/>
-                </optional>
+                </zeroOrMore>
+                <zeroOrMore>
+                    <ref name="toolbox"/>
+                </zeroOrMore>
             </interleave>
+        </element>
+    </define>
+    <define name="toolbox">
+        <element name="toolbox">
+            <a:documentation>Functions pre-added to Protegeneia</a:documentation>
+            <choice>
+                <attribute name="name"><value>RomanNumeral</value></attribute>
+                <ref name="applyTo" />
+            </choice>
         </element>
     </define>
     <define name="matchPattern">
@@ -69,12 +82,12 @@
         <element name="applyTo">
             <a:documentation>If source is different from target, groupes are deleted in source</a:documentation>
             <attribute name="source">
-                <a:documentation>Column name</a:documentation>
+                <a:documentation>Column name that should be the trigger of the function (eg. matched by matchPattern)</a:documentation>
                 <text/>
             </attribute>
             <oneOrMore>
                 <element name="target">
-                    <a:documentation>Column name</a:documentation>
+                    <a:documentation>Column name that should be the receptacle of the operation (eg. receive de replacement value)</a:documentation>
                     <text/>
                 </element>
             </oneOrMore>
@@ -104,20 +117,30 @@
     </define>
     <define name="disambiguation">
         <element name="disambiguation">
+            <a:documentation>Based on a source column, creates a new column that receives the group matched in @matchPattern. Is meant for
+            disambiguation but can be used for other things, such as named entities extraction and such.</a:documentation>
             <interleave>
-               <attribute name="lemma-column-name">
+               <attribute name="source-name">
+                   <a:documentation>Source column from which data should be matched and retrieved</a:documentation>
                    <data type="string"/>
                </attribute>
                <ref name="matchPattern" />
-               <attribute name="disambiguation-column-name">
+                <attribute name="new-column">
+                    <a:documentation>Name of the new column that will be created using the data from matchPattern</a:documentation>
                    <data type="string"/>
                </attribute>
+                <optional>
+                 <attribute name="keep">
+                     <a:documentation>Presence of keep will requires source to be left untouched, even if its match
+                     was extracted to new-colum</a:documentation>
+                     <empty />
+                 </attribute>
+                </optional>
             </interleave>
         </element>
     </define>
     <define name="corpora">
-        <a:documentation>This contains all corpora that should be split by PPA
-            Splitter</a:documentation>
+        <a:documentation>This contains all corpora that should be split by Protogeneia</a:documentation>
         <element name="corpora">
             <oneOrMore>
                 <ref name="corpus"/>

@@ -113,8 +113,6 @@ class PPAConfiguration:
         self.corpora: Dict[str, CorpusConfiguration] = corpora
         self.postprocessings: List[PostProcessing] = postprocessings or []
 
-        print(self.postprocessings)
-
     @classmethod
     def from_xml(cls, filepath: str) -> "PPAConfiguration":
         with open(filepath) as f:

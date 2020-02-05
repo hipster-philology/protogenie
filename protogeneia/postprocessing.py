@@ -42,11 +42,12 @@ class ApplyTo:
 class Disambiguation(PostProcessing):
     NodeName = "disambiguation"
 
-    def __init__(self, lemma_key: str, disambiguation_key: str, match_pattern: str):
+    def __init__(self, lemma_key: str, disambiguation_key: str, match_pattern: str, keep: bool = False):
         super(Disambiguation, self).__init__()
         self.lemma_key: str = lemma_key
         self.disambiguation_key: str = disambiguation_key
         self.match_pattern: re.Regex = re.compile(match_pattern)
+        self.keep: bool = keep
 
     def apply(self, file_path: str, config: "CorpusConfiguration"):
         temp = tempfile.TemporaryFile(mode="w+")  # 2
@@ -68,7 +69,8 @@ class Disambiguation(PostProcessing):
                     found = self.match_pattern.findall(lines[self.lemma_key])
                     if found:
                         lines[self.disambiguation_key] = found[0]
-                        lines[self.lemma_key] = self.match_pattern.sub("", lines[self.lemma_key])
+                        if not self.keep:  # If we do not keep the original value, we remove it
+                            lines[self.lemma_key] = self.match_pattern.sub("", lines[self.lemma_key])
                     temp.write(config.column_marker.join(list(lines.values()))+"\n")
             with open(file_path, "w") as f:
                 temp.seek(0)
@@ -79,9 +81,10 @@ class Disambiguation(PostProcessing):
     @classmethod
     def from_xml(cls, node: Element) -> "Disambiguation":
         return cls(
-            lemma_key=node.attrib["lemma-column-name"],
-            disambiguation_key=node.attrib["disambiguation-column-name"],
-            match_pattern=node.attrib["matchPattern"]
+            lemma_key=node.attrib["source-column"],
+            disambiguation_key=node.attrib["new-column"],
+            match_pattern=node.attrib["matchPattern"],
+            keep="keep" in node.attrib
         )
 
 

@@ -12,12 +12,21 @@ class RomanNumeral(PostProcessing):
     NODE = "utils"
 
     def __init__(
-            self, applies_to: List[ApplyTo]
+            self, apply_to: ApplyTo
     ):
+        """ Transform Roman Numerals to Integers
+
+        :param apply_to: List of fields that should have the rules applied to
+        """
         super(RomanNumeral, self).__init__()
-        self.match_pattern: re.Regex = re.compile(match_pattern)
-        self.replacement_pattern: str = replacement_pattern
-        self.applies_to: List[ApplyTo] = applies_to
+        # Just thank you, dear anonymous hero named Corin
+        # User: https://stackoverflow.com/users/302306/corin
+        # Source: https://stackoverflow.com/a/10441405
+        self.match_pattern: re.Regex = re.compile(r"(M{1,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}"
+                                                  r"(CM|C?D|D?C{1,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})|M{0,4}"
+                                                  r"(CM|CD|D?C{0,3})(XC|X?L|L?X{1,3})(IX|IV|V?I{0,3})|M{0,4}"
+                                                  r"(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|I?V|V?I{1,3}))")
+        self.apply_to: ApplyTo = apply_to
 
     def apply(self, file_path: str, config: "CorpusConfiguration"):
         temp = tempfile.TemporaryFile(mode="w+")  # 2
@@ -36,17 +45,16 @@ class RomanNumeral(PostProcessing):
                         continue
                     lines = dict(zip(header, line))
 
-                    for apply_to in self.applies_to:
-                        if self.match_pattern.search(lines[apply_to.source]):
-                            for target in apply_to.target:
-                                # If source and target are the same, we simply replace source by target
-                                if apply_to.source == target:
-                                    lines[apply_to.source] = self.match_pattern.sub(
-                                        self.replacement_pattern,
-                                        lines[apply_to.source]
-                                    )
-                                else:  # Otherwise, we just set the target value using this value
-                                    lines[target] = self.replacement_pattern
+                    if self.match_pattern.search(lines[self.apply_to.source]):
+                        original = {k: v for k, v in original.items()}
+                        result = self.from_roman(original[self.apply_to.source])
+
+                        for target in self.apply_to.target:
+                            # If source and target are the same, we simply replace source by target
+                            if self.apply_to.source == target:
+                                lines[self.apply_to.source] = result
+                            else:  # Otherwise, we just copy the result value to the target
+                                lines[target] = result
 
                     temp.write(config.column_marker.join(list(lines.values()))+"\n")
             with open(file_path, "w") as f:
@@ -58,7 +66,7 @@ class RomanNumeral(PostProcessing):
     @classmethod
     def from_xml(cls, node: Element) -> "RomanNumeral":
         return cls(
-            applies_to=[ApplyTo.from_xml(node) for node in node.findall("applyTo")]
+            apply_to=ApplyTo.from_xml(node.find("applyTo"))
         )
 
     @staticmethod
