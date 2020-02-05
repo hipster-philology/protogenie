@@ -138,18 +138,10 @@ def split_files(
                         f.write(current_config.column_marker.join(header_line)+"\n"+content)
             yield file, training_tokens
 
-            if config.disambiguation:
-                for output_file in created_files:
-                    config.disambiguation.disambiguate(output_file, current_config)
+            if config.postprocessings:
+                for post_processings in config.postprocessings:
+                    for output_file in created_files:
+                        post_processings.apply(output_file, current_config)
 
-            if config.replacement_sets:
-                for output_file in created_files:
-                    for replacement in config.replacement_sets:
-                        replacement.replace(output_file, current_config)
-
-            if config.skips:
-                for output_file in created_files:
-                    for skip in config.skips:
-                        skip.replace(output_file, current_config)
     if memory:
         memory_file.close()

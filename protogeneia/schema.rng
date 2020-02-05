@@ -65,26 +65,40 @@
             <empty />
         </element>
     </define>
-    <define name="replace">
-        <element name="replacement">
-            <ref name="matchPattern" />
-            <attribute name="replacementPattern">
-                <data type="string"/>
+    <define name="applyTo">
+        <element name="applyTo">
+            <a:documentation>If source is different from target, groupes are deleted in source</a:documentation>
+            <attribute name="source">
+                <a:documentation>Column name</a:documentation>
+                <text/>
             </attribute>
             <oneOrMore>
-                <element name="applyTo">
-                    <a:documentation>If source is different from target, groupes are deleted in source</a:documentation>
-                    <attribute name="source">
-                        <a:documentation>Column name</a:documentation>
-                        <text/>
-                    </attribute>
-                    <oneOrMore>
-                        <element name="target">
-                            <a:documentation>Column name</a:documentation>
-                            <text/>
-                        </element>
-                    </oneOrMore>
+                <element name="target">
+                    <a:documentation>Column name</a:documentation>
+                    <text/>
                 </element>
+            </oneOrMore>
+        </element>
+    </define>
+    <define name="replace">
+        <element name="replacement">
+            <a:documentation>Automatic replacement of some values using utils function or simply regular expression</a:documentation>
+            <choice>
+                <group>
+                    <ref name="matchPattern" />
+                    <attribute name="replacementPattern">
+                        <data type="string"/>
+                    </attribute>
+                </group>
+                <attribute name="utils">
+                    <a:documentation>Utils function that bears clear names</a:documentation>
+                    <choice>
+                        <value>roman_numbers_to_int</value>
+                    </choice>
+                </attribute>
+            </choice>
+            <oneOrMore>
+                <ref name="applyTo" />
             </oneOrMore>
         </element>
     </define>

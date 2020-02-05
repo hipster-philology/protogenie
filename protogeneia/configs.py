@@ -4,12 +4,14 @@ import xml.etree.ElementTree as ET
 from copy import deepcopy
 
 from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, FileSplitter, _SplitterPrototype
-from .cli_utils import check_files
 from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
-from .postprocessing import Disambiguation, ReplacementSet, Skip
+from .postprocessing import Disambiguation, ReplacementSet, Skip, PostProcessing
+from .replacements_functions import RomanNumeral
 
 Splitter = Type[_SplitterPrototype]
+
+PostProcessingClasses = [Disambiguation, ReplacementSet, Skip, RomanNumeral]
 
 
 class CorpusConfiguration:
@@ -101,9 +103,7 @@ class PPAConfiguration:
                  path: str,
                  corpora: Dict[str, CorpusConfiguration],
                  memory: Optional[str] = None,
-                 disambiguation: Optional[Disambiguation] = None,
-                 replacement_sets: List[ReplacementSet] = None,
-                 skips: List[Skip] = None,
+                 postprocessings: List[PostProcessing] = None,
                  **kwargs
                  ):
         self.path: str = path
@@ -111,9 +111,9 @@ class PPAConfiguration:
 
         self.memory: Optional[str] = memory
         self.corpora: Dict[str, CorpusConfiguration] = corpora
-        self.disambiguation: Optional[Disambiguation] = disambiguation
-        self.replacement_sets: List[ReplacementSet] = replacement_sets or []
-        self.skips: List[Skip] = skips or []
+        self.postprocessings: List[PostProcessing] = postprocessings or []
+
+        print(self.postprocessings)
 
     @classmethod
     def from_xml(cls, filepath: str) -> "PPAConfiguration":
@@ -138,19 +138,11 @@ class PPAConfiguration:
         if len(xml.findall("./memory")):
             kwargs["memory"] = xml.find("./memory").get("path")
 
-        if len(xml.findall("./postprocessing/disambiguation")):
-            kwargs["disambiguation"] = Disambiguation.from_xml(xml.find("./postprocessing/disambiguation"))
-
-        if len(xml.findall("./postprocessing/replacement")):
-            kwargs["replacement_sets"] = [
-                ReplacementSet.from_xml(node)
-                for node in xml.findall("./postprocessing/replacement")
-            ]
-
-        if len(xml.findall("./postprocessing/skip")):
-            kwargs["skips"] = [
-                Skip.from_xml(node)
-                for node in xml.findall("./postprocessing/skip")
-            ]
+        kwargs["postprocessings"] = []
+        for element in xml.findall("./postprocessing"):
+            for child in element:
+                for post_processing_class in PostProcessingClasses:
+                    if post_processing_class.match_config_node(child):
+                        kwargs["postprocessings"].append(post_processing_class.from_xml(child))
 
         return cls(path=filepath, corpora=corpora, **kwargs)

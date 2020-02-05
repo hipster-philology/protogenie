@@ -4,16 +4,51 @@ import tempfile
 import regex as re
 from xml.etree.ElementTree import Element
 import csv
-from typing import List
+from typing import List, ClassVar
+from abc import ABC, abstractmethod
 
 
-class Disambiguation(object):
+class PostProcessing(ABC):
+    NodeName = "XML-NODE-LOCAL-NAME"  # Name of the node to match
+
+    @abstractmethod
+    def apply(self, file_path: str, config: "CorpusConfiguration"):
+        raise NotImplementedError
+
+    @abstractmethod
+    def from_xml(cls, node: Element) -> ClassVar["PostProcessing"]:
+        raise NotImplementedError
+
+    @classmethod
+    def match_config_node(cls, node: Element) -> bool:
+        """ If the current node is representing the current object, returns True
+        """
+        return node.tag == cls.NodeName
+
+
+class ApplyTo:
+    def __init__(self, source: str, target: List[str]):
+        self.source: str = source
+        self.target: List[str] = target
+
+    @staticmethod
+    def from_xml(apply_to_node: Element) -> "ApplyTo":
+        return ApplyTo(
+            source=apply_to_node.attrib["source"],
+            target=[str(node.text).strip() for node in apply_to_node.findall("./target")]
+        )
+
+
+class Disambiguation(PostProcessing):
+    NodeName = "disambiguation"
+
     def __init__(self, lemma_key: str, disambiguation_key: str, match_pattern: str):
+        super(Disambiguation, self).__init__()
         self.lemma_key: str = lemma_key
         self.disambiguation_key: str = disambiguation_key
         self.match_pattern: re.Regex = re.compile(match_pattern)
 
-    def disambiguate(self, file_path: str, config: "CorpusConfiguration"):
+    def apply(self, file_path: str, config: "CorpusConfiguration"):
         temp = tempfile.TemporaryFile(mode="w+")  # 2
 
         try:
@@ -41,40 +76,31 @@ class Disambiguation(object):
         finally:
             temp.close()  # 5
 
-    @staticmethod
-    def from_xml(disambiguation_node: Element) -> "Disambiguation":
-        return Disambiguation(
-            lemma_key=disambiguation_node.attrib["lemma-column-name"],
-            disambiguation_key=disambiguation_node.attrib["disambiguation-column-name"],
-            match_pattern=disambiguation_node.attrib["matchPattern"]
+    @classmethod
+    def from_xml(cls, node: Element) -> "Disambiguation":
+        return cls(
+            lemma_key=node.attrib["lemma-column-name"],
+            disambiguation_key=node.attrib["disambiguation-column-name"],
+            match_pattern=node.attrib["matchPattern"]
         )
 
 
-class ApplyTo:
-    def __init__(self, source: str, target: List[str]):
-        self.source: str = source
-        self.target: List[str] = target
+class ReplacementSet(PostProcessing):
+    """ Using a regular expression, replaces values in certain columns
+    """
+    NodeName = "replacement"
 
-    @staticmethod
-    def from_xml(apply_to_node: Element) -> "ApplyTo":
-        return ApplyTo(
-            source=apply_to_node.attrib["source"],
-            target=[str(node.text).strip() for node in apply_to_node.findall("./target")]
-        )
-
-
-class ReplacementSet(object):
     def __init__(
             self, match_pattern: str, replacement_pattern: str,
             applies_to: List[ApplyTo]
     ):
+        super(ReplacementSet, self).__init__()
         self.match_pattern: re.Regex = re.compile(match_pattern)
         self.replacement_pattern: str = replacement_pattern
         self.applies_to: List[ApplyTo] = applies_to
 
-    def replace(self, file_path: str, config: "CorpusConfiguration"):
-        temp = tempfile.TemporaryFile(mode="w+")  # 2
-
+    def apply(self, file_path: str, config: "CorpusConfiguration"):
+        temp = tempfile.TemporaryFile(mode="w+")
         try:
             with open(file_path) as file:
                 csv_reader = csv.reader(file, delimiter=config.column_marker)
@@ -108,23 +134,28 @@ class ReplacementSet(object):
         finally:
             temp.close()  # 5
 
-    @staticmethod
-    def from_xml(replacement_node: Element) -> "ReplacementSet":
+    @classmethod
+    def from_xml(cls, node: Element) -> "ReplacementSet":
         return ReplacementSet(
-            match_pattern=replacement_node.attrib["matchPattern"],
-            replacement_pattern=replacement_node.attrib["replacementPattern"],
-            applies_to=[ApplyTo.from_xml(node) for node in replacement_node.findall("applyTo")]
+            match_pattern=node.attrib["matchPattern"],
+            replacement_pattern=node.attrib["replacementPattern"],
+            applies_to=[ApplyTo.from_xml(apply_to) for apply_to in node.findall("applyTo")]
         )
 
 
-class Skip(object):
+class Skip(PostProcessing):
+    """ If the matchPattern matches target column, the line is removed from the post-processed output
+    """
+    NodeName = "skip"
+
     def __init__(
         self, match_pattern: str, target: str
     ):
+        super(Skip, self).__init__()
         self.match_pattern: re.Regex = re.compile(match_pattern)
         self.target: str = target
 
-    def replace(self, file_path: str, config: "CorpusConfiguration"):
+    def apply(self, file_path: str, config: "CorpusConfiguration"):
         temp = tempfile.TemporaryFile(mode="w+")  # 2
 
         try:
@@ -154,9 +185,9 @@ class Skip(object):
         finally:
             temp.close()  # 5
 
-    @staticmethod
-    def from_xml(skip_node: Element) -> "Skip":
+    @classmethod
+    def from_xml(cls, node: Element) -> "Skip":
         return Skip(
-            match_pattern=skip_node.attrib["matchPattern"],
-            target=skip_node.attrib["target"]
+            match_pattern=node.attrib["matchPattern"],
+            target=node.attrib["target"]
         )
