@@ -8,6 +8,7 @@ from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
 from .postprocessing import Disambiguation, ReplacementSet, Skip, PostProcessing
 from .toolbox import RomanNumeral
+import datetime
 
 Splitter = Type[_SplitterPrototype]
 
@@ -135,6 +136,12 @@ class PPAConfiguration:
         # Check options
         if len(xml.findall("./memory")):
             kwargs["memory"] = xml.find("./memory").get("path")
+
+            kwargs["memory"] = kwargs["memory"].replace(
+                "$file$", os.path.splitext(os.path.basename(filepath))[0]
+            ).replace(
+                "$date$", datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
+            )
 
         kwargs["postprocessings"] = []
         for element in xml.findall("./postprocessing"):
