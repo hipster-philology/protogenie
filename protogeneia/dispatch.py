@@ -1,10 +1,15 @@
 from .io_utils import add_sentence, get_name
 from .configs import CorpusConfiguration, PPAConfiguration
 from .defaults import DEFAULT_SENTENCE_MARKERS, DEFAULT_SPLITTER
+from dataclasses import dataclass
+from typing import Dict, Optional
 from .splitters import LineSplitter
 import glob
 import os
 import csv
+
+
+__all__ = ["split_files", "files_from_memory"]
 
 
 def split_files(
@@ -145,3 +150,118 @@ def split_files(
 
     if memory:
         memory_file.close()
+
+
+@dataclass
+class _Range:
+    end: int
+    dataset: str
+
+
+@dataclass
+class _CorpusDispatched:
+    """ Item that contains informations about dispatching
+
+    Using dataclass mainly for typing"""
+    config: PPAConfiguration
+    lines: Dict[int, _Range]
+
+
+def files_from_memory(
+        config: PPAConfiguration, output_folder: str, memory_file: str,
+        verbose: bool = True):
+    """
+
+    :param config: Configuration
+    :param output_folder: Directory where to save files
+    :param memory_file: Memory file that holds lines to dispatch
+    :param verbose: Whether to print stuff
+    """
+    memory = open(memory_file)
+    memory_reader = csv.reader(memory)
+
+    dispatcher: Dict[str, _CorpusDispatched] = {
+        os.path.realpath(real_path): _CorpusDispatched(config=corpus_config, lines={})
+        for unix_path, corpus_config in config.corpora.items()
+        for real_path in glob.glob(os.path.join(config.dir, unix_path))
+    }
+
+    # For each file, we build a map of the lines that needs to be dispatched
+    for line in memory_reader:
+        if not line:
+            continue
+        current_file, line_range, dataset_target = line
+
+        real_path = os.path.realpath(current_file)
+        if real_path in dispatcher:
+            start, end = tuple(map(int, line_range.split("-")))
+            dispatcher[real_path].lines[start] = _Range(end=end, dataset=dataset_target)
+    memory.close()
+
+    for file, dispatching in dispatcher.items():
+        # We set up a dictionary of token count to print nice
+        #  information later
+        training_tokens = {"test": 0, "dev": 0, "train": 0}
+
+        current_config = dispatching.config
+
+        header_line = []
+        created_files = set()
+        sentence = []
+        blanks = 0
+        current_set: Optional[_Range] = None
+
+        with open(file) as f:
+            for line_no, line in enumerate(f):
+                if line_no == 0:
+                    if current_config.reader.has_header:
+                        header_line = [current_config.reader.map_to[key]
+                                       for key in line.strip().split(current_config.column_marker) if key]
+                        continue
+                    else:
+                        header_line = current_config.reader.header
+                elif not line.strip() and not isinstance(current_config.splitter, LineSplitter):
+                    # Only count is we already have written or the sentence writing has started
+                    if len(sentence) > 0:
+                        blanks += 1
+                    continue
+
+                if line_no in dispatching.lines:                  # We begin a set
+                    current_set = dispatching.lines[line_no]
+                    sentence.append(line)
+                elif current_set and line_no != current_set.end:  # We are in the set
+                    sentence.append(line)
+                elif current_set and line_no == current_set.end:  # We are at the end of the set
+                    sentence.append(line)
+                    blanks = 0  # ToDo: Blanks are not really taken into account here...
+                    sentence = [x for x in sentence if x.strip()]
+                    add_sentence(
+                        output_folder=output_folder,
+                        dataset=current_set.dataset,
+                        filename=file,
+                        sentence=sentence
+                    )
+                    training_tokens[current_set.dataset] += len(sentence)
+                    sentence = []
+
+            # Finally, if there is something remaining
+            if len(sentence) and current_set:
+                add_sentence(
+                    output_folder=output_folder,
+                    dataset=current_set.dataset,
+                    filename=file,
+                    sentence=sentence
+                )
+                training_tokens[current_set.dataset] += len(sentence)
+
+        print(training_tokens)
+        # Add the header to the files
+        for dataset, tokens in training_tokens.items():
+            if tokens:
+                trg = get_name(output_folder, dataset, file)
+                created_files.add(trg)  # We add the file to the one we created
+                with open(trg) as f:
+                    content = f.read()
+                with open(trg, "w") as f:
+                    f.write(current_config.column_marker.join(header_line)+"\n"+content)
+        yield file, training_tokens
