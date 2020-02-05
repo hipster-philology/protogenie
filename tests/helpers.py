@@ -6,17 +6,22 @@ import io
 import csv
 from typing import List, Tuple, Optional, Generator, Dict
 
-from protogeneia.cli import dispatch
+from protogeneia.cli import dispatch, from_memory
 from protogeneia.configs import PPAConfiguration
 from os import getenv
 
 
 class _TestHelper(TestCase):
+    output_dir = "./tests/test_config/"
     def setUp(self):
         self.verbose = getenv("VERBOSE_TESTS", "0") == "1"  # Allows for more debugging during tests
         files = glob.glob("./tests/tests_output/**/*.*")
         for file in files:
             os.remove(file)
+        try:
+            os.remove("memory.csv")
+        except:
+            pass
 
     def get_chunk_size(self, f):
         chunk_length = []
@@ -88,3 +93,6 @@ class _TestHelper(TestCase):
                     header = line
                 else:
                     yield dict(zip(header, line))
+
+    def _from_memory(self, memory_file: str, config: str, output_dir: str) -> PPAConfiguration:
+        return from_memory(memory_file, config, output_dir)

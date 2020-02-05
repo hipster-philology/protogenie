@@ -90,3 +90,6 @@ def dispatch(
 
     return config
 
+
+def from_memory(memory_file: str, config: str, output_dir: str) -> PPAConfiguration:
+    pass
