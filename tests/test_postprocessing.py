@@ -94,3 +94,30 @@ class TestPostProcessing(_TestHelper):
 
         self.assertEqual(tokens, 200*0.8*0.8,
                          "There should be 80% of total tokens - 20% (1 of 5 char is a dot) that were removed")
+
+    def test_roman_numbers(self):
+        """ Check roman numbers validity """
+        self._dispatch(
+            output_dir="./tests/tests_output/",
+
+            train=0.8,
+            dev=0.1,
+            test=0.1,
+            config="./tests/test_config/roman_numbers.xml"
+        )
+
+        # Checking all corpora just to be sure
+        tokens = 0
+        romnums = 0
+        for line in self.read_file("train", "roman_numbers.tsv"):
+            if line:  # Some line can be empty
+                if line["POS"] == "RomNum":
+                    romnums += 1
+                    self.assertTrue(line["form"].isnumeric(), "RomanNumeral should have been converted to int")
+                    self.assertTrue(line["lemma"].isnumeric(), "RomanNumeral should have been converted to int")
+                tokens += 1
+
+        self.assertEqual(tokens, 300*0.8,
+                         "There should be 80% of total tokens")
+        self.assertEqual(romnums, 300*0.8*0.2,
+                         "There should be 20% of the train corpus that were numerals")

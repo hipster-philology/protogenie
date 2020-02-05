@@ -10,26 +10,12 @@
         </header>
     </output>
     <postprocessing>
-        <replacement utils="roman_numbers_to_int">
-            <!-- This should replace all 0 and 1 to a 1 both in form and in lemma
-                 This is designed to reduce the issue of sparsity / rarity of number examples while
-                 keeping the semantic of numbers.
-            -->
+        <toolbox name="RomanNumeral">
             <applyTo source="form">
                 <target>form</target>
                 <target>lemma</target>
             </applyTo>
-        </replacement>
-        <replacement matchPattern="^(?![01]$)\d+$" replacementPattern="3">
-            <!-- This should replace all numbers to a 3 both in form and in lemma
-                 This is designed to reduce the issue of sparsity / rarity of number examples while
-                 keeping the semantic of numbers.
-            -->
-            <applyTo source="form">
-                <target>form</target>
-                <target>lemma</target>
-            </applyTo>
-        </replacement>
+        </toolbox>
     </postprocessing>
     <memory path="memory.csv" />
     <default-header>
@@ -40,7 +26,7 @@
         </header>
     </default-header>
     <corpora>
-        <corpus path="../test_data/replacement.tsv" column_marker="TAB">
+        <corpus path="../test_data/roman_numbers.tsv" column_marker="TAB">
             <splitter name="token_window" window="20"/>
             <header type="default" />
         </corpus>

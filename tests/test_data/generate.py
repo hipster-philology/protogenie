@@ -1,6 +1,26 @@
 import random
 import string
 
+ROMAN_NUMERAL_TABLE = [
+    ("M", 1000), ("CM", 900), ("D", 500),
+    ("CD", 400), ("C", 100),  ("XC", 90),
+    ("L", 50),   ("XL", 40),  ("X", 10),
+    ("IX", 9),   ("V", 5),    ("IV", 4),
+    ("I", 1)
+]
+
+
+def roman_number(number: int) -> str:
+    """ Convert an integer to Roman
+    Source : https://codereview.stackexchange.com/a/147718
+    Thanks to https://codereview.stackexchange.com/users/119968/alex """
+    roman_numerals = []
+    for numeral, value in ROMAN_NUMERAL_TABLE:
+        count, number = divmod(number, value)
+        roman_numerals.append(numeral * count)
+
+    return ''.join(roman_numerals)
+
 
 def randomString(start: str = "", length: int = 10) -> str:
     """Generate a random string of fixed length """
@@ -98,7 +118,7 @@ if False:
                     rand3=randomString(start="tok_", length=10)
                 ))
 
-if True:
+if False:
     at_least_one_zero = False
     at_least_one_one = False
     with open("skip.tsv", "w") as f:
@@ -114,6 +134,28 @@ if True:
                     rand1=".",
                     rand2="removed_by_token",
                     rand3="."
+                ))
+            else:
+                f.write("{rand1}\t{rand2}\t{rand3}\n".format(
+                    rand1=randomString(start="lem_", length=10),
+                    rand2=randomString(start="pos_", length=10),
+                    rand3=randomString(start="tok_", length=10)
+                ))
+
+            if (lines + 1) % 20 == 0:
+                f.write("\n")
+
+if True:
+    at_least_one_zero = False
+    at_least_one_one = False
+    with open("roman_numbers.tsv", "w") as f:
+        for lines in range(300):
+            if (lines + 1) % 5 == 0:
+                randint = roman_number(random.randint(1, 5000))
+                f.write("{rand1}\t{rand2}\t{rand3}\n".format(
+                    rand1=randint,
+                    rand2="RomNum",
+                    rand3=randint
                 ))
             else:
                 f.write("{rand1}\t{rand2}\t{rand3}\n".format(

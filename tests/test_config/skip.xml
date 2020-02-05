@@ -10,10 +10,10 @@
         </header>
     </output>
     <postprocessing>
-        <skip matchPattern="^\W+$" target="form" />
-        <skip matchPattern="^PUN\w*$" target="POS" />
+        <skip matchPattern="^\W+$" source="form" />
+        <skip matchPattern="^PUN\w*$" source="POS" />
     </postprocessing>
-    <memory path="memory-%date%-%file%.csv" />
+    <memory path="memory-$date$-$file$.csv" />
     <default-header>
         <header type="order">
             <key map-to="form">2</key>

@@ -152,11 +152,11 @@ class Skip(PostProcessing):
     NodeName = "skip"
 
     def __init__(
-        self, match_pattern: str, target: str
+        self, match_pattern: str, source: str
     ):
         super(Skip, self).__init__()
         self.match_pattern: re.Regex = re.compile(match_pattern)
-        self.target: str = target
+        self.source: str = source
 
     def apply(self, file_path: str, config: "CorpusConfiguration"):
         temp = tempfile.TemporaryFile(mode="w+")  # 2
@@ -177,7 +177,7 @@ class Skip(PostProcessing):
                     lines = dict(zip(header, line))
 
                     # If it matches, we skip it
-                    if self.match_pattern.search(lines[self.target]):
+                    if self.match_pattern.search(lines[self.source]):
                         continue
 
                     temp.write(config.column_marker.join(list(lines.values()))+"\n")
@@ -192,5 +192,5 @@ class Skip(PostProcessing):
     def from_xml(cls, node: Element) -> "Skip":
         return Skip(
             match_pattern=node.attrib["matchPattern"],
-            target=node.attrib["target"]
+            source=node.attrib["source"]
         )
