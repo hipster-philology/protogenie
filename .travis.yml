@@ -11,3 +11,5 @@ install:
 script:
   - nosetests ./tests --with-coverage --cover-package=protogeneia --cover-xml --verbose --nologcapture
   - pyjing protogeneia/schema.rng tests/test_config/*.xml
+after_script:
+  - coveralls
