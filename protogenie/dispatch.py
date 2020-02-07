@@ -1,7 +1,7 @@
 from .io_utils import add_sentence, get_name
 from .configs import CorpusConfiguration, ProtogenieConfiguration
 from dataclasses import dataclass
-from typing import Dict, Optional, List, Set
+from typing import Dict, Optional, List, Set, Tuple
 from .splitters import LineSplitter
 import glob
 import os
@@ -48,6 +48,33 @@ def split_files(
         memory_file.close()
 
 
+def _preview(file: str, current_config: CorpusConfiguration) -> Tuple[List[str], int, int, int]:
+    # We count things in the file
+    unit_counts = 0
+    empty_lines = 0
+    header_line = []
+
+    if not current_config.reader.has_header:
+        header_line = current_config.reader.header
+
+    with open(file) as f:
+        for line_no, line in enumerate(f):
+            if line_no == 0:
+                if current_config.reader.has_header:
+                    header_line = current_config.reader.set_header(line.strip().split(current_config.column_marker))
+                    continue
+
+            if line_no == 0 and current_config.reader.has_header:
+                continue  # Skip the first line in count if we have a header
+            unit_counts += int(current_config.splitter(
+                line,
+                reader=current_config.reader
+            ))
+            empty_lines += int(not bool(line.strip()))  # Count only lines if they are empty
+
+    return header_line, unit_counts, empty_lines, line_no - int(current_config.reader.has_header) - empty_lines + 1
+
+
 def _single_file_dispatch(
         file: str, current_config: CorpusConfiguration,
         config: ProtogenieConfiguration, output_folder: str, dev_ratio: float, test_ratio: float,
@@ -63,20 +90,12 @@ def _single_file_dispatch(
     #
     # This method is slower but allows for memory efficiency.
 
-    # We count things in the file
-    unit_counts = 0
-    lines = 0
-    with open(file) as f:
-        for line_no, line in enumerate(f):
-            if line_no == 0 and current_config.reader.has_header:
-                continue  # Skip the first line in count if we have a header
-            unit_counts += int(current_config.splitter(line))
-            lines += int(line == "\n")  # Count only lines if they are empty
+    header_line, unit_counts, empty_lines, lines = _preview(file, current_config)
 
     if verbose:
-        print("{unit_count} {unit_name} to dispatch in {filename} ({lines})".format(
+        print("{unit_count} {unit_name} to dispatch in {filename} ({lines} full, {lines_empty} empty)".format(
             filename=file, unit_name=current_config.unit_name, unit_count=unit_counts,
-            lines=lines
+            lines_empty=empty_lines, lines=lines
         ))
 
     # We set up numbers based on the ratio
@@ -96,20 +115,14 @@ def _single_file_dispatch(
     current_config.splitter.reset()
     current_config.splitter.set_targets(target_dataset)
 
-    header_line = []
     created_files = set()
 
     with open(file) as f:
         sentence = []
         blanks = 0
         for line_no, line in enumerate(f):
-            if line_no == 0:
-                if current_config.reader.has_header:
-                    header_line = [current_config.reader.map_to[key]
-                                   for key in line.strip().split(current_config.column_marker) if key]
-                    continue
-                else:
-                    header_line = current_config.reader.header
+            if line_no == 0 and current_config.reader.has_header:
+                continue
             elif not line.strip() and not isinstance(current_config.splitter, LineSplitter):
                 # Only count is we already have written or the sentence writing has started
                 if len(sentence) > 0:
@@ -117,7 +130,7 @@ def _single_file_dispatch(
                 continue
 
             sentence.append(line)
-            if current_config.splitter(line):
+            if current_config.splitter(line, reader=current_config.reader):
                 dataset = target_dataset.pop(0)
 
                 if memory:

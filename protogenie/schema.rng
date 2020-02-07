@@ -85,7 +85,7 @@
             <interleave>
                 <ref name="matchPattern" />
                 <attribute name="source">
-                    <a:documentation>Node that should be match by matchPattern</a:documentation>
+                    <a:documentation>Node that should be matched by matchPattern</a:documentation>
                     <data type="string" />
                 </attribute>
             </interleave>
@@ -231,6 +231,10 @@
                         <value>regexp</value>
                     </attribute>
                     <ref name="matchPattern" />
+                    <attribute name="source">
+                        <a:documentation>Source column that should be matched by matchPattern</a:documentation>
+                        <data type="string" />
+                    </attribute>
                 </group>
                 <attribute name="name">
                     <a:documentation>Each empty line represent a new passage</a:documentation>

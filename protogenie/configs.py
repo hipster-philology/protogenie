@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 from copy import deepcopy
 
 from .splitters import RegExpSplitter, LineSplitter, TokenWindowSplitter, FileSplitter, _SplitterPrototype
-from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
 from .postprocessing import Disambiguation, ReplacementSet, Skip, PostProcessing
 from .toolbox import RomanNumeral
@@ -51,8 +50,7 @@ class CorpusConfiguration:
         self.reader: Reader = reader
         self.splitter_name: str = splitter
 
-        _spliter_options: Dict[str, Any] = deepcopy(DEFAULT_CONFIG_VALUES)
-        _spliter_options.update(spliter_options)
+        _spliter_options: Dict[str, Any] = spliter_options
 
         # Some characters are awful to replicate in YAML, that's why
         #  we have a dictionary of simplified names
