@@ -142,6 +142,12 @@
                      <empty />
                  </attribute>
                 </optional>
+                <optional>
+                    <attribute name="default">
+                        <a:documentation>Value to use to fill the column when required. "_" by default.</a:documentation>
+                        <data type="string" />
+                    </attribute>
+                </optional>
             </interleave>
         </element>
     </define>

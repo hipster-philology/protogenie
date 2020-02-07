@@ -42,12 +42,14 @@ class ApplyTo:
 class Disambiguation(PostProcessing):
     NodeName = "disambiguation"
 
-    def __init__(self, lemma_key: str, disambiguation_key: str, match_pattern: str, keep: bool = False):
+    def __init__(self, lemma_key: str, disambiguation_key: str, match_pattern: str,
+                 default_value: str, keep: bool = False):
         super(Disambiguation, self).__init__()
         self.lemma_key: str = lemma_key
         self.disambiguation_key: str = disambiguation_key
         self.match_pattern: re.Regex = re.compile(match_pattern)
         self.keep: bool = keep
+        self.default_value: str = default_value
 
     def apply(self, file_path: str, config: "CorpusConfiguration"):
         temp = tempfile.TemporaryFile(mode="w+")  # 2
@@ -71,6 +73,9 @@ class Disambiguation(PostProcessing):
                         lines[self.disambiguation_key] = found[0]
                         if not self.keep:  # If we do not keep the original value, we remove it
                             lines[self.lemma_key] = self.match_pattern.sub("", lines[self.lemma_key])
+                    else:
+                        lines[self.disambiguation_key] = self.default_value
+
                     temp.write(config.column_marker.join(list(lines.values()))+"\n")
             with open(file_path, "w") as f:
                 temp.seek(0)
@@ -84,7 +89,8 @@ class Disambiguation(PostProcessing):
             lemma_key=node.attrib["source-column"],
             disambiguation_key=node.attrib["new-column"],
             match_pattern=node.attrib["matchPattern"],
-            keep="keep" in node.attrib
+            keep="keep" in node.attrib,
+            default_value=node.attrib.get("default", "_")
         )
 
 
