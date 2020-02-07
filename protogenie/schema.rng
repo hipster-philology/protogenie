@@ -11,15 +11,19 @@
                 <ref name="corpora"/>
                 <!-- Optional for now -->
                 <optional><ref name="output"/></optional>
-                <element name="default-header">
-                    <a:documentation>Default header (to avoid duplication)</a:documentation>
-                    <ref name="header"/>
-                </element>
-                <element name="memory">
-                    <a:documentation>Save or load indexes of lines saved in different file. CSV
-                        file</a:documentation>
-                    <ref name="path"/>
-                </element>
+                <optional>
+                  <element name="default-header">
+                      <a:documentation>Default header (to avoid duplication)</a:documentation>
+                      <ref name="header"/>
+                  </element>
+                </optional>
+                <optional>
+                  <element name="memory">
+                      <a:documentation>Save or load indexes of lines saved in different file. CSV
+                          file</a:documentation>
+                      <ref name="path"/>
+                  </element>
+                </optional>
             </interleave>
         </element>
     </start>

@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Package meta-data.
-NAME = 'protogeneia'
+NAME = 'protogenie'
 DESCRIPTION = "Pre-processing of NLP training corpora"
 URL = 'https://github.com/ponteineptique/nlp-pie-taggers'
 AUTHOR = 'Thibault Clérice'
@@ -110,7 +110,7 @@ setup(
     # py_modules=['mypackage'],
 
     entry_points={
-        'console_scripts': ['protogeneia=protogeneia.cli:main'],
+        'console_scripts': ['protogenie=protogenie.cli:main'],
     },
     install_requires=REQUIRED,
     extras_require=EXTRAS,

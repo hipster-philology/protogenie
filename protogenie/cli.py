@@ -16,15 +16,15 @@ def main():
 
 
 @main.command("get-scheme")
-@click.argument("where", type=click.Path(file_okay=True, dir_okay=True), default="./scheme.rng")
-def cli_scheme(where):
+@click.argument("dest", type=click.Path(file_okay=True, dir_okay=True), default="./scheme.rng")
+def cli_scheme(dest):
     """Copy the schema file to [WHERE]"""
     import os
     import shutil
     here = os.path.abspath(os.path.dirname(__file__))
     schema = os.path.join(here, "schema.rng")
-    shutil.copy(schema, where)
-    click.echo("Copied to {}".format(os.path.abspath(where)))
+    shutil.copy(schema, dest)
+    click.echo("Copied to {}".format(os.path.abspath(dest)))
 
 
 @main.command("dispatch")
