@@ -9,6 +9,7 @@ import random
 from typing import Dict, Union, List, Tuple, Optional
 if not True:
     from .configs import CorpusConfiguration
+    from .reader import Reader
 
 from .defaults import DEFAULT_SENTENCE_MARKERS
 
@@ -76,7 +77,9 @@ class _SplitterPrototype(_DispatcherRandom):
         line = line.split(corpus_configuration.column_marker)
         return line
 
-    def __call__(self, *args, **kwargs) -> bool:
+    def __call__(self, line, reader: "Reader") -> bool:
+        """
+        """
         raise NotImplemented
 
     def set_targets(self, targets: List[str]) -> None:
@@ -84,7 +87,7 @@ class _SplitterPrototype(_DispatcherRandom):
 
 
 class RegExpSplitter(_SplitterPrototype):
-    def __init__(self, column_marker="\t", matchPattern="["+DEFAULT_SENTENCE_MARKERS+"]", **kwargs):
+    def __init__(self, column_marker="\t", matchPattern="["+DEFAULT_SENTENCE_MARKERS+"]", source="form", **kwargs):
         """ Returns true if the line is a sentence splitter by being empty
 
         :param column_marker: Marker that splits column in the CSV/TSV
@@ -93,15 +96,20 @@ class RegExpSplitter(_SplitterPrototype):
         self.column_marker = column_marker
         self.match_pattern = matchPattern
         self.matcher = re.compile(matchPattern)
+        self.source: str = source
 
     def _repr_options(self):
         return " matchPattern='{}'".format(self.match_pattern)
 
-    def __call__(self, line):
-        return True in [
-            bool(self.matcher.search(token))
-            for token in line.split(self.column_marker)
-        ]
+    def __call__(self, line: str, reader: "Reader" = None):
+        return bool(
+            self.matcher.search(
+                reader.get_column(
+                    line.strip().split(reader.column_marker),
+                    self.source
+                )
+            )
+        )
 
 
 class LineSplitter(_SplitterPrototype):
@@ -113,7 +121,7 @@ class LineSplitter(_SplitterPrototype):
         #  not counting as separators
         self.last_line_was_empty = True
 
-    def __call__(self, line):
+    def __call__(self, line, reader=None):
         if line == "\n":
             if self.last_line_was_empty:
                 return False
@@ -137,7 +145,7 @@ class TokenWindowSplitter(_SplitterPrototype):
         self.window = int(window)
         self.words = 0
 
-    def __call__(self, line):
+    def __call__(self, line, reader=None):
         if not line.strip():
             return False
         # No body cares about line in here
@@ -165,7 +173,7 @@ class FileSplitter(_SplitterPrototype):
         self._dispatching: bool = False  #
         self._sizes: Optional[List[int]] = None
         
-    def __call__(self, line):
+    def __call__(self, line, reader=None):
         if not line.strip():
             return False
 
