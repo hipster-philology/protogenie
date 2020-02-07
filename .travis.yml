@@ -1,13 +1,17 @@
 language: python
 python:
+  - "3.6"
   - "3.7"
+  - "3.8"
 
 install:
-  - pip install -r requirements.txt
+  - python setup.py develop  # Installing this way to have version dependant requirements installed
   - pip install nose mypy flake8 coveralls jingtrang
 # JingTrang is installed to check that the configs which are used are valid
 
 # command to run tests
 script:
-  - nosetests ./tests --with-coverage --cover-package=protogeneia --cover-xml --verbose --nologcapture
-  - pyjing protogeneia/schema.rng tests/test_config/*.xml
+  - nosetests ./tests --with-coverage --cover-package=protogenie --cover-xml --verbose --nologcapture
+  - pyjing protogenie/schema.rng tests/test_config/*.xml
+after_script:
+  - coveralls

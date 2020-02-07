@@ -2,8 +2,8 @@ from argparse import ArgumentParser
 import os
 import shutil
 
-from .configs import CorpusConfiguration, PPAConfiguration
-from .dispatch import split_files
+from .configs import PPAConfiguration
+from .dispatch import split_files, files_from_memory
 from .cli_utils import check_ratio
 
 import click
@@ -16,15 +16,15 @@ def main():
 
 
 @main.command("get-scheme")
-@click.argument("where", type=click.Path(file_okay=True, dir_okay=True), default="./scheme.rng")
-def cli_scheme(where):
+@click.argument("dest", type=click.Path(file_okay=True, dir_okay=True), default="./scheme.rng")
+def cli_scheme(dest):
     """Copy the schema file to [WHERE]"""
     import os
     import shutil
     here = os.path.abspath(os.path.dirname(__file__))
     schema = os.path.join(here, "schema.rng")
-    shutil.copy(schema, where)
-    click.echo("Copied to {}".format(os.path.abspath(where)))
+    shutil.copy(schema, dest)
+    click.echo("Copied to {}".format(os.path.abspath(dest)))
 
 
 @main.command("dispatch")
@@ -92,4 +92,16 @@ def dispatch(
 
 
 def from_memory(memory_file: str, config: str, output_dir: str) -> PPAConfiguration:
-    pass
+    config = PPAConfiguration.from_xml(config)
+
+    os.makedirs(output_dir, exist_ok=True)
+    for subset in ["dev", "test", "train"]:
+        os.makedirs(os.path.join(output_dir, subset), exist_ok=True)
+
+    for file, ratios in files_from_memory(config=config, memory_file=memory_file, output_folder=output_dir):
+        print("{} has been transformed".format(file))
+        for key, value in ratios.items():
+            if value:
+                print("\t{} tokens in {} dataset".format(value, key))
+
+    return config

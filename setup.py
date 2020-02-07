@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Package meta-data.
-NAME = 'protogeneia'
+NAME = 'protogenie'
 DESCRIPTION = "Pre-processing of NLP training corpora"
 URL = 'https://github.com/ponteineptique/nlp-pie-taggers'
 AUTHOR = 'Thibault Clérice'
@@ -27,7 +27,12 @@ with open(os.path.join(here, 'requirements.txt')) as f:
     REQUIRED = f.read().splitlines()
 
 # What packages are optional?
-EXTRAS = {}
+EXTRAS = {
+    ':python_version < "3.7"': [
+        'dataclasses',
+        'typing'
+    ],
+}
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -105,7 +110,7 @@ setup(
     # py_modules=['mypackage'],
 
     entry_points={
-        'console_scripts': ['protogeneia=protogeneia.cli:main'],
+        'console_scripts': ['protogenie=protogenie.cli:main'],
     },
     install_requires=REQUIRED,
     extras_require=EXTRAS,
@@ -118,6 +123,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Text Processing :: Linguistic'

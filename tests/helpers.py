@@ -6,8 +6,8 @@ import io
 import csv
 from typing import List, Tuple, Optional, Generator, Dict
 
-from protogeneia.cli import dispatch, from_memory
-from protogeneia.configs import PPAConfiguration
+from protogenie.cli import dispatch, from_memory
+from protogenie.configs import PPAConfiguration
 from os import getenv
 
 

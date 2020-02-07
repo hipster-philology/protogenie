@@ -3,7 +3,7 @@ import os.path
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 
-from .splitters import PunctuationSplitter, LineSplitter, TokenWindowSplitter, FileSplitter, _SplitterPrototype
+from .splitters import RegExpSplitter, LineSplitter, TokenWindowSplitter, FileSplitter, _SplitterPrototype
 from .defaults import DEFAULT_CONFIG_VALUES
 from .reader import Reader
 from .postprocessing import Disambiguation, ReplacementSet, Skip, PostProcessing
@@ -18,14 +18,14 @@ PostProcessingClasses = [Disambiguation, ReplacementSet, Skip, RomanNumeral]
 class CorpusConfiguration:
     SPLITTERS = {
         "empty_line": LineSplitter,
-        "punctuation": PunctuationSplitter,
+        "regexp": RegExpSplitter,
         "token_window": TokenWindowSplitter,
         "file_split": FileSplitter
     }
 
     UNIT_NAMES = {
-        "empty_line": "sentences",
-        "punctuation": "sentences",
+        "empty_line": "chunks",
+        "regexp": "sentences",
         "token_window": "token-windows",
         "file_split": "tokens"
     }

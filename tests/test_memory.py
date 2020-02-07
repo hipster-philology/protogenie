@@ -3,6 +3,8 @@ from tempfile import mkstemp, TemporaryDirectory
 from typing import Tuple
 import os.path as p
 import random
+import glob
+import filecmp
 
 TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="protogeneia/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
@@ -87,6 +89,8 @@ class TestMemory(_TestHelper):
                 config=config1,
                 output_dir=output_dir_1
             )
+            name = p.splitext(p.basename(config1))[0]  # [0] form splitext is everything but .xml
+            memory_file = memory_file.replace("$file$", name)+".csv"
 
             # At this point, we have a memory file at `memory`
             # What we need now is a new config, which will reuse the same file but with memory
@@ -94,8 +98,17 @@ class TestMemory(_TestHelper):
             random.seed(5555)
             with TemporaryDirectory(dir="./") as second_dir:
                 """ Test some memory name"""
-                config2, _ = self.create_config(memory="$file$", corpora=DEFAULT_CORPUS, cur_dir=cur_dir)
-                output_dir_2 = p.join(cur_dir, "output")
+                config2, _ = self.create_config(memory="$file$", corpora=DEFAULT_CORPUS, cur_dir=second_dir)
+                output_dir_2 = p.join(second_dir, "output")
                 self._from_memory(memory_file=memory_file, config=config2, output_dir=output_dir_2)
 
+                seen = 0
+                for dataset_type in ["train", "dev", "test"]:
+                    for original_file in glob.glob(p.join(output_dir_1, dataset_type, "*.*")):
+                        base = p.basename(original_file)
+                        created_from_memory = p.join(output_dir_2, dataset_type, base)
+                        self.assertTrue(filecmp.cmp(original_file, created_from_memory),
+                                        "File %s should be the same" % original_file)
+                        seen += 1
 
+                self.assertEqual(seen, 3, "With the current config, there should be three files produced")
