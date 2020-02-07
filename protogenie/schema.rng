@@ -228,11 +228,9 @@
                 </group>
                 <group>
                     <attribute name="name">
-                        <value>punctuation</value>
+                        <value>regexp</value>
                     </attribute>
-                    <attribute name="sentence_markers">
-                        <data type="string"/>
-                    </attribute>
+                    <ref name="matchPattern" />
                 </group>
                 <attribute name="name">
                     <a:documentation>Each empty line represent a new passage</a:documentation>

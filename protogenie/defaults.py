@@ -5,7 +5,7 @@ DEFAULT_SPLITTER = "punctuation"
 DEFAULT_SENTENCE_MARKERS = ";:."
 DEFAULT_COLUMN_MARKER = "TAB"
 DEFAULT_CONFIG_VALUES = {
-    "sentence_markers": DEFAULT_SENTENCE_MARKERS,
+    "matchPattern": "["+DEFAULT_SENTENCE_MARKERS+"]",
     "window": 20,
     "column_marker": DEFAULT_COLUMN_MARKER
 }

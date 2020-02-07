@@ -83,25 +83,25 @@ class _SplitterPrototype(_DispatcherRandom):
         pass
 
 
-class PunctuationSplitter(_SplitterPrototype):
-    def __init__(self, column_marker="\t", sentence_splitter=DEFAULT_SENTENCE_MARKERS, **kwargs):
+class RegExpSplitter(_SplitterPrototype):
+    def __init__(self, column_marker="\t", matchPattern="["+DEFAULT_SENTENCE_MARKERS+"]", **kwargs):
         """ Returns true if the line is a sentence splitter by being empty
 
         :param column_marker: Marker that splits column in the CSV/TSV
         :param sentence_splitter: Marker that shows the end of a sentence
         """
         self.column_marker = column_marker
-        self.sentence_splitter = sentence_splitter
+        self.match_pattern = matchPattern
+        self.matcher = re.compile(matchPattern)
 
     def _repr_options(self):
-        return " sentence_markers='{}'".format(self.sentence_splitter)
+        return " matchPattern='{}'".format(self.match_pattern)
 
     def __call__(self, line):
-        return bool(len([
-            1
+        return True in [
+            bool(self.matcher.search(token))
             for token in line.split(self.column_marker)
-            if token in self.sentence_splitter
-        ]))
+        ]
 
 
 class LineSplitter(_SplitterPrototype):
