@@ -7,7 +7,7 @@ import csv
 from typing import List, Tuple, Optional, Generator, Dict
 
 from protogenie.cli import dispatch, from_memory
-from protogenie.configs import PPAConfiguration
+from protogenie.configs import ProtogenieConfiguration
 from os import getenv
 
 
@@ -45,7 +45,7 @@ class _TestHelper(TestCase):
     def path(self, directory: str, file: str) -> str:
         return "./tests/tests_output/"+directory+"/"+file
 
-    def _dispatch(self, *args, **kwargs) -> Tuple[str, PPAConfiguration]:
+    def _dispatch(self, *args, **kwargs) -> Tuple[str, ProtogenieConfiguration]:
         f = io.StringIO()
         with contextlib.redirect_stdout(f):
             config = dispatch(*args, **kwargs)
@@ -94,5 +94,5 @@ class _TestHelper(TestCase):
                 else:
                     yield dict(zip(header, line))
 
-    def _from_memory(self, memory_file: str, config: str, output_dir: str) -> PPAConfiguration:
-        return from_memory(memory_file, config, output_dir)
+    def _from_memory(self, memory_file: str, config: str, output_dir: str, **kwargs) -> ProtogenieConfiguration:
+        return from_memory(memory_file, config, output_dir, **kwargs)

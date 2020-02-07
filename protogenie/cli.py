@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import os
 import shutil
 
-from .configs import PPAConfiguration
+from .configs import ProtogenieConfiguration
 from .dispatch import split_files, files_from_memory
 from .cli_utils import check_ratio
 
@@ -27,7 +27,7 @@ def cli_scheme(dest):
     click.echo("Copied to {}".format(os.path.abspath(dest)))
 
 
-@main.command("dispatch")
+@main.command("build")
 @click.argument("file", type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option("--output", default="./output", type=str, help="Directory where the output should be built")
 @click.option("-c", "--clear", default=False, is_flag=True, help="Clear the output directory")
@@ -55,9 +55,42 @@ def cli_dispatch(file, output, clear=False, train=0.8, dev=.0, test=0.2):
     )
 
 
+@main.command("rebuild")
+@click.argument("file", type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument("memory", type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.option("--output", default="./output", type=str, help="Directory where the output should be built")
+@click.option("-c", "--clear", default=False, is_flag=True, help="Clear the output directory")
+@click.option("-d", "--dev", "dev", default=0., type=float,
+              help="[New file only] Percentage of data to use for dev set")
+@click.option("-e", "--test", "test", default=None, type=float,
+              help="[New file only] Percentage of data to use for test set")
+def cli_dispatch(file, memory, output, clear=False, dev=.0, test=0.2):
+    """Given [MEMORY] file, uses [FILE] config file to generate a new corpus
+
+    This method detects new files and treat them if --test and --dev are given
+    """
+
+    if clear:
+        confirm_message = "Are you sure you want to remove data in {} ? [y/n]\t>\t".format(output)
+
+        if click.confirm(confirm_message):
+            click.echo("\tRemoving data in {}".format(output))
+            shutil.rmtree(output, ignore_errors=True)
+        else:
+            print("\tData were not removed")
+
+    from_memory(
+        config=file,
+        memory_file=memory,
+        test_ratio=test,
+        dev_ratio=dev,
+        output_dir=output
+    )
+
+
 def dispatch(
         train: float, test: float, dev: float, config: str, output_dir: str,
-        verbose=True, concat: bool = False) -> PPAConfiguration:
+        verbose=True, concat: bool = False) -> ProtogenieConfiguration:
     """
 
     :param train:
@@ -71,7 +104,7 @@ def dispatch(
     """
 
     train, test, dev = check_ratio(train, test, dev)
-    config = PPAConfiguration.from_xml(config)
+    config = ProtogenieConfiguration.from_xml(config)
 
     os.makedirs(output_dir, exist_ok=True)
     for subset in ["dev", "test", "train"]:
@@ -91,14 +124,16 @@ def dispatch(
     return config
 
 
-def from_memory(memory_file: str, config: str, output_dir: str) -> PPAConfiguration:
-    config = PPAConfiguration.from_xml(config)
+def from_memory(memory_file: str, config: str, output_dir: str,
+                dev_ratio: float = None, test_ratio: float = None) -> ProtogenieConfiguration:
+    config = ProtogenieConfiguration.from_xml(config)
 
     os.makedirs(output_dir, exist_ok=True)
     for subset in ["dev", "test", "train"]:
         os.makedirs(os.path.join(output_dir, subset), exist_ok=True)
 
-    for file, ratios in files_from_memory(config=config, memory_file=memory_file, output_folder=output_dir):
+    for file, ratios in files_from_memory(config=config, memory_file=memory_file, output_folder=output_dir,
+                                          dev_ratio=dev_ratio, test_ratio=test_ratio):
         print("{} has been transformed".format(file))
         for key, value in ratios.items():
             if value:
