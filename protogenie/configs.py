@@ -99,7 +99,7 @@ class CorpusConfiguration:
         return self.splitter.dispatch(units_count, test_ratio=test_ratio, dev_ratio=dev_ratio)
 
 
-class PPAConfiguration:
+class ProtogenieConfiguration:
     def __init__(self,
                  path: str,
                  corpora: Dict[str, CorpusConfiguration],
@@ -115,7 +115,7 @@ class PPAConfiguration:
         self.postprocessings: List[PostProcessing] = postprocessings or []
 
     @classmethod
-    def from_xml(cls, filepath: str) -> "PPAConfiguration":
+    def from_xml(cls, filepath: str) -> "ProtogenieConfiguration":
         with open(filepath) as f:
             xml = ET.parse(f)
         kwargs = {}
@@ -126,10 +126,11 @@ class PPAConfiguration:
         # Parse corpora configurations
         corpora = {}
         for corpus in xml.findall("./corpora/corpus"):
+
             corpora[corpus.get("path")] = CorpusConfiguration(**{
                 "column_marker": corpus.get("column_marker"),
                 "splitter": corpus.find("splitter").get("name"),
-                "reader": default_reader,
+                "reader": Reader.from_xml(corpus.find("./header"), default=default_reader),
                 **{key: value for key, value in corpus.find("splitter").attrib.items() if key != "name"}
             })
 
