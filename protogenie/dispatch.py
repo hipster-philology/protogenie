@@ -61,15 +61,12 @@ def _preview(file: str, current_config: CorpusConfiguration) -> Tuple[List[str],
         for line_no, line in enumerate(f):
             if line_no == 0:
                 if current_config.reader.has_header:
-                    header_line = current_config.reader.set_header(line.strip().split(current_config.column_marker))
+                    header_line = current_config.reader.set_header(line)
                     continue
 
             if line_no == 0 and current_config.reader.has_header:
                 continue  # Skip the first line in count if we have a header
-            unit_counts += int(current_config.splitter(
-                line,
-                reader=current_config.reader
-            ))
+            unit_counts += int(current_config.splitter(line, reader=current_config.reader            ))
             empty_lines += int(not bool(line.strip()))  # Count only lines if they are empty
 
     return header_line, unit_counts, empty_lines, line_no - int(current_config.reader.has_header) - empty_lines + 1
@@ -194,8 +191,10 @@ def _add_header(output_folder: str, file: str,
                 f.write(current_config.column_marker.join(header_line)+"\n"+content)
     return files
 
+
 @dataclass
 class _Range:
+    """Just a class to deal with typing. End is the end of the range, dataset is [train|dev|test]"""
     end: int
     dataset: str
 
@@ -265,8 +264,7 @@ def files_from_memory(
             for line_no, line in enumerate(f):
                 if line_no == 0:
                     if current_config.reader.has_header:
-                        header_line = [current_config.reader.map_to[key]
-                                       for key in line.strip().split(current_config.column_marker) if key]
+                        header_line = current_config.reader.set_header(line)
                         continue
                     else:
                         header_line = current_config.reader.header

@@ -68,7 +68,7 @@ class CorpusConfiguration:
                 self.splitter_name, ", ".join(list(self.SPLITTERS.keys()))
             ))
         # Initialize the splitter
-        self.splitter: Splitter = splitter_class(**_spliter_options)
+        self.splitter: _SplitterPrototype = splitter_class(**_spliter_options)
 
     def __repr__(self):
         return "<corpus column_marker='{column}'>{splitter}</corpus>".format(

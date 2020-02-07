@@ -51,10 +51,10 @@ class Reader(object):
         _map = [(key.text.strip(), key.get("map-to")) for key in xml_node.findall("./key") if key.text]
         return cls(reader_type=reader_type, keys=_map, column_marker=column_marker)
 
-    def set_header(self, line: List[str]) -> List[str]:
+    def set_header(self, line: str) -> List[str]:
         self._header = [
             self.map_to[key]
-            for key in line
+            for key in line.strip().split(self.column_marker)
             if key
         ]
         return self._header
