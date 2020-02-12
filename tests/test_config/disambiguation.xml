@@ -2,7 +2,7 @@
 <?xml-model href="../../protogenie/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <config>
     <output column_marker="TAB">
-        <header>
+        <header name="order">
             <key>token</key>
             <key>lemma</key>
             <key>pos</key>

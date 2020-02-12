@@ -35,14 +35,17 @@
                 <a:documentation>Header is optional because you might have file all looking the same, hence keeping the original headers. But, if you have
                 post-processing, you are losing this data, as column that do not appear here are ignored.</a:documentation>
                 <element name="header">
-                 <oneOrMore>
-                     <element name="key">
-                         <optional>
-                             <ref name="map-to"/>
-                         </optional>
-                         <data type="string"/>
-                     </element>
-                 </oneOrMore>
+                 <choice>
+                     <optional><attribute name="name"><value>default</value></attribute></optional>
+                     <group>
+                        <attribute name="name"><value>order</value></attribute>
+                        <oneOrMore>
+                            <element name="key">
+                                <data type="string"/>
+                            </element>
+                        </oneOrMore>
+                     </group>
+                </choice>
                 </element>
             </optional>
         </element>
