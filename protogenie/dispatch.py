@@ -148,7 +148,9 @@ def files_from_memory(
                         output_folder=output_folder,
                         dataset=current_set.dataset,
                         filename=file,
-                        sentence=sentence
+                        sentence=sentence,
+                        source_marker=current_config.column_marker,
+                        output_marker=config.output.column_marker
                     )
                     training_tokens[current_set.dataset] += len(sentence)
                     sentence = []
@@ -159,7 +161,9 @@ def files_from_memory(
                     output_folder=output_folder,
                     dataset=current_set.dataset,
                     filename=file,
-                    sentence=sentence
+                    sentence=sentence,
+                    source_marker=current_config.column_marker,
+                    output_marker=config.output.column_marker
                 )
                 training_tokens[current_set.dataset] += len(sentence)
 
@@ -204,12 +208,50 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
     :param verbose:
     :return: Generator[data_type, filename, nb_chunks, nb_lines]
     """
+    def write_sentence(sents: List[List[str]], dataset):
+        dataset.write("\n".join(config.output.column_marker.join(sent) for sent in sents)+"\n")
+
     for dataset_type in ["train", "test", "dev"]:
         cur_dir = os.path.join(output_folder, dataset_type)
+
+        out = os.path.join(output_folder, dataset_type + ".tsv")
+        out = open(out, "w")
+        out.write(config.output.column_marker.join(config.output.header)+"\n")
+
         for _, _, files in os.walk(cur_dir, topdown=False):
             for file in files:
                 basename = os.path.basename(file)
-                yield dataset_type, basename, 5, 10
+                tokens, chunks = 0, 0
+                # Output files necessarly have headers and empty lines as markers
+                with open(os.path.join(cur_dir, file)) as f:
+                    sentence = []
+                    for line_numb, line in enumerate(f.readlines()):
+                        line = line.strip()
+                        # If we met the header
+                        if line_numb == 0:
+                            cols = line.split(config.output.column_marker)
+                            header_map = [cols.index(head) for head in config.output.header]
+                            continue
+
+                        # If we have a sentence
+                        if not line and sentence:
+                            write_sentence(sentence, out)
+                            chunks += 1
+                            sentence = []
+                            continue
+
+                        mapped = line.split(config.output.column_marker)
+                        mapped = [mapped[index] for index in header_map]
+                        tokens += 1
+                        sentence.append(mapped)
+
+                    if sentence:
+                        write_sentence(sentence, out)
+                        chunks += 1
+
+                yield dataset_type, basename, chunks, tokens
+
+        out.close()
     return []
 
 ##################
@@ -307,7 +349,9 @@ def _single_file_dispatch(
                     output_folder=output_folder,
                     dataset=dataset,
                     filename=file,
-                    sentence=sentence
+                    sentence=sentence,
+                    source_marker=current_config.column_marker,
+                    output_marker=config.output.column_marker
                 )
                 training_tokens[dataset] += len(sentence)
                 sentence = []
@@ -327,7 +371,9 @@ def _single_file_dispatch(
                 output_folder=output_folder,
                 dataset=dataset,
                 filename=file,
-                sentence=sentence
+                sentence=sentence,
+                source_marker=current_config.column_marker,
+                output_marker=config.output.column_marker
             )
             training_tokens[dataset] += len(sentence)
 

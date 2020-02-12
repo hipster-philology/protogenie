@@ -8,10 +8,18 @@ from .reader import Reader
 from .postprocessing import Disambiguation, ReplacementSet, Skip, PostProcessing
 from .toolbox import RomanNumeral
 import datetime
-
+from dataclasses import dataclass
 Splitter = Type[_SplitterPrototype]
 
 PostProcessingClasses = [Disambiguation, ReplacementSet, Skip, RomanNumeral]
+
+
+@dataclass
+class Output:
+    """ Details about output"""
+    header: List[str]
+    column_marker: str
+    readable_column_marker: str
 
 
 class CorpusConfiguration:
@@ -101,7 +109,7 @@ class ProtogenieConfiguration:
     def __init__(self,
                  path: str,
                  corpora: Dict[str, CorpusConfiguration],
-                 output_header: List[str] = None,
+                 output: Output,
                  memory: Optional[str] = None,
                  postprocessings: List[PostProcessing] = None,
                  **kwargs
@@ -112,7 +120,7 @@ class ProtogenieConfiguration:
         self.memory: Optional[str] = memory
         self.corpora: Dict[str, CorpusConfiguration] = corpora
         self.postprocessings: List[PostProcessing] = postprocessings or []
-        self.output_header: List[str] = output_header
+        self.output: Output = output
 
     @classmethod
     def from_xml(cls, filepath: str) -> "ProtogenieConfiguration":
@@ -123,7 +131,12 @@ class ProtogenieConfiguration:
         # Get readers
         default_reader = Reader.from_xml(xml.find("./default-header/header"), default=None)
 
-        output_header = [node.text.strip() for node in xml.findall("./output/header/key")]
+        col = xml.find("./output").attrib["column_marker"]
+        output = Output(
+            column_marker=col.replace("TAB", "\t"),
+            readable_column_marker=col,
+            header=[node.text.strip() for node in xml.findall("./output/header/key")]
+        )
 
         # Parse corpora configurations
         corpora = {}
@@ -153,4 +166,4 @@ class ProtogenieConfiguration:
                     if post_processing_class.match_config_node(child):
                         kwargs["postprocessings"].append(post_processing_class.from_xml(child))
 
-        return cls(path=filepath, corpora=corpora, output_header=output_header, **kwargs)
+        return cls(path=filepath, corpora=corpora, output=output, **kwargs)

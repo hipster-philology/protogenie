@@ -11,6 +11,7 @@ from protogenie.dispatch import ConfigError
 TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="protogeneia/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <config>
+    <output column_marker="TAB" />
     {postprocessing}
     <memory path="{memory}.csv" />
     <default-header>

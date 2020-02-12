@@ -156,11 +156,36 @@ def from_memory(memory_file: str, config: str, output_dir: str,
 def concat(config: str, output_dir: str, verbose: bool = True) -> ProtogenieConfiguration:
     config = ProtogenieConfiguration.from_xml(config)
     dataset = None
-    template = '    {:50s} {:10d} {:10d}'
+
+    max_len = 50
+    template = '    {:'+str(max_len)+'s} {:>10d} {:>10d}'
+    chunks_lines = {}
     for data_type, filename, nb_chunks, nb_lines in glue(config=config, output_folder=output_dir, verbose=verbose):
         if dataset != data_type:
+            if dataset in chunks_lines:
+                click.echo("{}'s statistics.".format(dataset))
+                click.echo("Chunks: {:>10d}".format(chunks_lines[dataset][0]))
+                click.echo("Tokens: {:>10d}".format(chunks_lines[dataset][1]))
             click.echo("\n========\n{}\n".format(data_type))
             click.echo(template.replace("d", "s").format("File", "Chunks", "Tokens"))
             dataset = data_type
-        click.echo(template.format(filename, nb_chunks, nb_lines))
+            chunks_lines[data_type] = [0, 0]
+        click.echo(template.format(filename[:max_len], nb_chunks, nb_lines))
+        chunks_lines[data_type][0] += nb_chunks
+        chunks_lines[data_type][1] += nb_lines
+
+    click.echo("{}'s statistics.".format(dataset))
+    click.echo("Chunks: {:>10d}".format(chunks_lines[dataset][0]))
+    click.echo("Tokens: {:>10d}".format(chunks_lines[dataset][1]))
+
+    total_chunks, total_lines = sum([v[0] for v in chunks_lines.values() if v[0]]), \
+                                sum([v[1] for v in chunks_lines.values() if v[1]])
+
+    click.echo("++++++++++++++\nSummary:")
+    for dataset in chunks_lines:
+        click.echo("{}: {:.2f} of chunks, {:.2f} of tokens".format(
+            dataset,
+            chunks_lines[dataset][0] / total_chunks * 100,
+            chunks_lines[dataset][1] / total_lines * 100
+        ))
     return config
