@@ -10,7 +10,7 @@
                 <optional><ref name="post-processing"/></optional>
                 <ref name="corpora"/>
                 <!-- Optional for now -->
-                <optional><ref name="output"/></optional>
+                <ref name="output"/>
                 <optional>
                   <element name="default-header">
                       <a:documentation>Default header (to avoid duplication)</a:documentation>
@@ -30,6 +30,7 @@
     <define name="output">
         <element name="output">
             <a:documentation>Columns that should and order for the collated file</a:documentation>
+            <ref name="column-marker" />
             <element name="header">
                 <oneOrMore>
                     <element name="key">
@@ -69,6 +70,10 @@
                     <a:documentation>Replace roman numerals by integers</a:documentation>
                     <attribute name="name"><value>RomanNumeral</value></attribute>
                     <ref name="applyTo" />
+                    <optional>
+                        <a:documentation>If need be, rewrite the way we match roman numerals</a:documentation>
+                        <ref name="matchPattern" />
+                    </optional>
                 </group>
             </choice>
         </element>
@@ -164,16 +169,19 @@
             <a:documentation>A corpus consist of a single file that should be split, or a UNIX-like
                 path such as mydata/*.tsv</a:documentation>
             <ref name="path"/>
-            <attribute name="column_marker">
-                <a:documentation>Strings that separates columns in the CSV. TAB is for
-                    tabulation</a:documentation>
-                <data type="string"/>
-            </attribute>
+            <ref name="column-marker" />
             <interleave>
                 <ref name="splitter"/>
                 <ref name="header"/>
             </interleave>
         </element>
+    </define>
+    <define name="column-marker">
+        <attribute name="column_marker">
+            <a:documentation>Strings that separates columns in the CSV. TAB is for
+                tabulation</a:documentation>
+            <data type="string"/>
+        </attribute>
     </define>
     <define name="header">
         <element name="header">

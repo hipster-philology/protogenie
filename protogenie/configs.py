@@ -101,6 +101,7 @@ class ProtogenieConfiguration:
     def __init__(self,
                  path: str,
                  corpora: Dict[str, CorpusConfiguration],
+                 output_header: List[str] = None,
                  memory: Optional[str] = None,
                  postprocessings: List[PostProcessing] = None,
                  **kwargs
@@ -111,6 +112,7 @@ class ProtogenieConfiguration:
         self.memory: Optional[str] = memory
         self.corpora: Dict[str, CorpusConfiguration] = corpora
         self.postprocessings: List[PostProcessing] = postprocessings or []
+        self.output_header: List[str] = output_header
 
     @classmethod
     def from_xml(cls, filepath: str) -> "ProtogenieConfiguration":
@@ -120,6 +122,8 @@ class ProtogenieConfiguration:
 
         # Get readers
         default_reader = Reader.from_xml(xml.find("./default-header/header"), default=None)
+
+        output_header = [node.text.strip() for node in xml.findall("./output/header/key")]
 
         # Parse corpora configurations
         corpora = {}
@@ -149,4 +153,4 @@ class ProtogenieConfiguration:
                     if post_processing_class.match_config_node(child):
                         kwargs["postprocessings"].append(post_processing_class.from_xml(child))
 
-        return cls(path=filepath, corpora=corpora, **kwargs)
+        return cls(path=filepath, corpora=corpora, output_header=output_header, **kwargs)

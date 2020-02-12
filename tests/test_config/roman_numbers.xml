@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="../../protogenie/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <config>
-    <output>
+    <output column_marker="TAB">
         <header>
             <key>form</key>
             <key>lemma</key>

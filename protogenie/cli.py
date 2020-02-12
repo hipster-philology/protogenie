@@ -3,7 +3,7 @@ import os
 import shutil
 
 from .configs import ProtogenieConfiguration
-from .dispatch import split_files, files_from_memory
+from .dispatch import split_files, files_from_memory, glue
 from .cli_utils import check_ratio
 
 import click
@@ -34,7 +34,7 @@ def cli_scheme(dest):
 @click.option("-t", "--train", "train", default=0.8, type=float, help="Percentage of data to use for training")
 @click.option("-d", "--dev", "dev", default=0., type=float, help="Percentage of data to use for dev set")
 @click.option("-e", "--test", "test", default=0.2, type=float, help="Percentage of data to use for test set")
-def cli_dispatch(file, output, clear=False, train=0.8, dev=.0, test=0.2):
+def cli_build(file, output, clear=False, train=0.8, dev=.0, test=0.2):
     """ Uses [FILE] to split and pre-process a training corpus for NLP Tasks. File should follow the schema, see
     protogeneia get-scheme"""
 
@@ -64,7 +64,7 @@ def cli_dispatch(file, output, clear=False, train=0.8, dev=.0, test=0.2):
               help="[New file only] Percentage of data to use for dev set")
 @click.option("-e", "--test", "test", default=None, type=float,
               help="[New file only] Percentage of data to use for test set")
-def cli_dispatch(file, memory, output, clear=False, dev=.0, test=0.2):
+def cli_rebuild(file, memory, output, clear=False, dev=.0, test=0.2):
     """Given [MEMORY] file, uses [FILE] config file to generate a new corpus
 
     This method detects new files and treat them if --test and --dev are given
@@ -86,6 +86,17 @@ def cli_dispatch(file, memory, output, clear=False, dev=.0, test=0.2):
         dev_ratio=dev,
         output_dir=output
     )
+
+
+@main.command("concat")
+@click.argument("config", type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument("output",  type=click.Path(exists=True, file_okay=False, dir_okay=True))
+def cli_concat(config, output):
+    """Given [MEMORY] file, uses [FILE] config file to generate a new corpus
+
+    This method detects new files and treat them if --test and --dev are given
+    """
+    concat(config, output)
 
 
 def dispatch(
@@ -139,4 +150,17 @@ def from_memory(memory_file: str, config: str, output_dir: str,
             if value:
                 print("\t{} tokens in {} dataset".format(value, key))
 
+    return config
+
+
+def concat(config: str, output_dir: str, verbose: bool = True) -> ProtogenieConfiguration:
+    config = ProtogenieConfiguration.from_xml(config)
+    dataset = None
+    template = '    {:50s} {:10d} {:10d}'
+    for data_type, filename, nb_chunks, nb_lines in glue(config=config, output_folder=output_dir, verbose=verbose):
+        if dataset != data_type:
+            click.echo("\n========\n{}\n".format(data_type))
+            click.echo(template.replace("d", "s").format("File", "Chunks", "Tokens"))
+            dataset = data_type
+        click.echo(template.format(filename, nb_chunks, nb_lines))
     return config
