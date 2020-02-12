@@ -31,16 +31,20 @@
         <element name="output">
             <a:documentation>Columns that should and order for the collated file</a:documentation>
             <ref name="column-marker" />
-            <element name="header">
-                <oneOrMore>
-                    <element name="key">
-                        <optional>
-                            <ref name="map-to"/>
-                        </optional>
-                        <data type="string"/>
-                    </element>
-                </oneOrMore>
-            </element>
+            <optional>
+                <a:documentation>Header is optional because you might have file all looking the same, hence keeping the original headers. But, if you have
+                post-processing, you are losing this data, as column that do not appear here are ignored.</a:documentation>
+                <element name="header">
+                 <oneOrMore>
+                     <element name="key">
+                         <optional>
+                             <ref name="map-to"/>
+                         </optional>
+                         <data type="string"/>
+                     </element>
+                 </oneOrMore>
+                </element>
+            </optional>
         </element>
     </define>
     <define name="post-processing">
