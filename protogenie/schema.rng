@@ -160,6 +160,12 @@
                         <data type="string" />
                     </attribute>
                 </optional>
+                <optional>
+                    <attribute name="glue">
+                        <a:documentation>Value to use to join capturing groups</a:documentation>
+                        <data type="string" />
+                    </attribute>
+                </optional>
             </interleave>
         </element>
     </define>
