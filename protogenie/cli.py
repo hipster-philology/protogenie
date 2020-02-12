@@ -91,12 +91,13 @@ def cli_rebuild(file, memory, output, clear=False, dev=.0, test=0.2):
 @main.command("concat")
 @click.argument("config", type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument("output",  type=click.Path(exists=True, file_okay=False, dir_okay=True))
-def cli_concat(config, output):
+@click.option("-v", "--verbose", default=False, is_flag=True, help="Print text level stats")
+def cli_concat(config, output, verbose):
     """Given [MEMORY] file, uses [FILE] config file to generate a new corpus
 
     This method detects new files and treat them if --test and --dev are given
     """
-    concat(config, output)
+    concat(config, output, verbose=verbose)
 
 
 def dispatch(
@@ -163,20 +164,22 @@ def concat(config: str, output_dir: str, verbose: bool = True) -> ProtogenieConf
     for data_type, filename, nb_chunks, nb_lines in glue(config=config, output_folder=output_dir, verbose=verbose):
         if dataset != data_type:
             if dataset in chunks_lines:
-                click.echo("{}'s statistics.".format(dataset))
-                click.echo("Chunks: {:>10d}".format(chunks_lines[dataset][0]))
-                click.echo("Tokens: {:>10d}".format(chunks_lines[dataset][1]))
-            click.echo("\n========\n{}\n".format(data_type))
-            click.echo(template.replace("d", "s").format("File", "Chunks", "Tokens"))
+                click.echo("# {}'s statistics".format(dataset))
+                click.echo("Chunks: {:>15,d}".format(chunks_lines[dataset][0]))
+                click.echo("Tokens: {:>15,d}".format(chunks_lines[dataset][1]))
+            if verbose:
+                click.echo("\n========\n{}\n".format(data_type))
+                click.echo(template.replace("d", "s").format("File", "Chunks", "Tokens"))
             dataset = data_type
             chunks_lines[data_type] = [0, 0]
-        click.echo(template.format(filename[:max_len], nb_chunks, nb_lines))
+        if verbose:
+            click.echo(template.format(filename[:max_len], nb_chunks, nb_lines))
         chunks_lines[data_type][0] += nb_chunks
         chunks_lines[data_type][1] += nb_lines
 
-    click.echo("{}'s statistics.".format(dataset))
-    click.echo("Chunks: {:>10d}".format(chunks_lines[dataset][0]))
-    click.echo("Tokens: {:>10d}".format(chunks_lines[dataset][1]))
+    click.echo("# {}'s statistics".format(dataset))
+    click.echo("Chunks: {:>15,d}".format(chunks_lines[dataset][0]))
+    click.echo("Tokens: {:>15,d}".format(chunks_lines[dataset][1]))
 
     total_chunks, total_lines = sum([v[0] for v in chunks_lines.values() if v[0]]), \
                                 sum([v[1] for v in chunks_lines.values() if v[1]])

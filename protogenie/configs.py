@@ -132,7 +132,7 @@ class ProtogenieConfiguration:
         default_reader = Reader.from_xml(xml.find("./default-header/header"), default=None)
 
         col = xml.find("./output").attrib["column_marker"]
-        header_node = xml.find("/output/header")
+        header_node = xml.find("./output/header")
         if not header_node or header_node.get("name", "default") == "default":
             header = [mapped or key for key, mapped in default_reader._keys]
         else:
