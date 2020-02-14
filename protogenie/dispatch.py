@@ -209,7 +209,7 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
     :return: Generator[data_type, filename, nb_chunks, nb_lines]
     """
     def write_sentence(sents: List[List[str]], dataset):
-        dataset.write("\n".join(config.output.column_marker.join(sent) for sent in sents)+"\n")
+        dataset.write("\n".join(config.output.column_marker.join(sent) for sent in sents)+"\n\n") # 2 new lines
 
     for dataset_type in ["train", "test", "dev"]:
         cur_dir = os.path.join(output_folder, dataset_type)
