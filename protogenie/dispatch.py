@@ -62,7 +62,7 @@ def split_files(
            yield from _single_file_dispatch(
                file, current_config=current_config, memory=memory,
                dev_ratio=dev_ratio, test_ratio=test_ratio, output_folder=output_folder,
-               config=config
+               config=config, verbose=verbose
            )
 
     if memory:

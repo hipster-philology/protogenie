@@ -4,6 +4,7 @@ import shutil
 
 from .configs import ProtogenieConfiguration
 from .dispatch import split_files, files_from_memory, glue
+from .dispatch import split_files, files_from_memory, glue
 from .cli_utils import check_ratio
 
 import click
@@ -34,7 +35,8 @@ def cli_scheme(dest):
 @click.option("-t", "--train", "train", default=0.8, type=float, help="Percentage of data to use for training")
 @click.option("-d", "--dev", "dev", default=0., type=float, help="Percentage of data to use for dev set")
 @click.option("-e", "--test", "test", default=0.2, type=float, help="Percentage of data to use for test set")
-def cli_build(file, output, clear=False, train=0.8, dev=.0, test=0.2):
+@click.option("-v", "--verbose", default=False, is_flag=True, help="Print text level stats")
+def cli_build(file, output, clear=False, train=0.8, dev=.0, test=0.2, verbose=False):
     """ Uses [FILE] to split and pre-process a training corpus for NLP Tasks. File should follow the schema, see
     protogeneia get-scheme"""
 
@@ -51,7 +53,8 @@ def cli_build(file, output, clear=False, train=0.8, dev=.0, test=0.2):
         train=train,
         test=test,
         dev=dev,
-        output_dir=output
+        output_dir=output,
+        verbose=verbose
     )
 
 
@@ -102,7 +105,7 @@ def cli_concat(config, output, verbose):
 
 def dispatch(
         train: float, test: float, dev: float, config: str, output_dir: str,
-        verbose=True, concat: bool = False) -> ProtogenieConfiguration:
+        verbose=False, concat: bool = False) -> ProtogenieConfiguration:
     """
 
     :param train:
@@ -116,6 +119,7 @@ def dispatch(
     """
 
     train, test, dev = check_ratio(train, test, dev)
+    print(train, test, dev)
     config = ProtogenieConfiguration.from_xml(config)
 
     os.makedirs(output_dir, exist_ok=True)
