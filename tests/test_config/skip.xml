@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="../../protogenie/schema.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
 <config>
-    <output>
-        <header>
+    <output column_marker="TAB">
+        <header name="order">
             <key>form</key>
             <key>lemma</key>
             <key>pos</key>

@@ -30,7 +30,7 @@ class _DispatcherSequential:
 
         train_number = units_count
         dev_number = 0
-        if dev_ratio > 0.01:
+        if dev_ratio > 0.001:
             dev_number = int(math.ceil(dev_ratio * units_count))
             train_number = train_number - dev_number
         test_number = int(math.ceil(test_ratio * units_count))

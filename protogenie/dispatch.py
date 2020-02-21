@@ -15,6 +15,27 @@ class ConfigError(Exception):
     """ Error when a configuration has been wrong"""
 
 
+@dataclass
+class _Range:
+    """Just a class to deal with typing. End is the end of the range, dataset is [train|dev|test]"""
+    end: int
+    dataset: str
+
+
+@dataclass
+class _CorpusDispatched:
+    """ Item that contains informations about dispatching
+
+    Using dataclass mainly for typing"""
+    config: CorpusConfiguration
+    lines: Dict[int, _Range]
+
+
+################
+# Main Functions
+################
+
+
 def split_files(
         config: ProtogenieConfiguration, output_folder: str, dev_ratio: float, test_ratio: float,
         verbose: bool = True):
@@ -41,11 +62,201 @@ def split_files(
            yield from _single_file_dispatch(
                file, current_config=current_config, memory=memory,
                dev_ratio=dev_ratio, test_ratio=test_ratio, output_folder=output_folder,
-               config=config
+               config=config, verbose=verbose
            )
 
     if memory:
         memory_file.close()
+
+
+def files_from_memory(
+        config: ProtogenieConfiguration, output_folder: str, memory_file: str,
+        verbose: bool = True, dev_ratio: float = None, test_ratio: float = None):
+    """ Regenerate a corpus using the same previously selected lined but potentially
+    adding files and different post-processing
+
+    :param config: Configuration
+    :param output_folder: Directory where to save files
+    :param memory_file: Memory file that holds lines to dispatch
+    :param verbose: Whether to print stuff
+    :param dev_ratio: Dev Ratio
+    :param test_ratio: Test ratio
+    """
+    memory = open(memory_file)
+    memory_reader = csv.reader(memory)
+
+    dispatcher: Dict[str, _CorpusDispatched] = {
+        os.path.realpath(real_path): _CorpusDispatched(config=corpus_config, lines={})
+        for unix_path, corpus_config in config.corpora.items()
+        for real_path in glob.glob(os.path.join(config.dir, unix_path))
+    }
+
+    # For each file, we build a map of the lines that needs to be dispatched
+    for line in memory_reader:
+        if not line:
+            continue
+        current_file, line_range, dataset_target = line
+
+        real_path = os.path.realpath(current_file)
+        if real_path in dispatcher:
+            start, end = tuple(map(int, line_range.split("-")))
+            dispatcher[real_path].lines[start] = _Range(end=end, dataset=dataset_target)
+    memory.close()
+
+    new_files = []
+    for file, dispatching in dispatcher.items():
+        if not dispatching.lines:
+            new_files.append((file, dispatching.config))
+            pass
+
+        # We set up a dictionary of token count to print nice
+        #  information later
+        training_tokens = {"test": 0, "dev": 0, "train": 0}
+
+        current_config = dispatching.config
+
+        header_line = []
+        created_files = set()
+        sentence = []
+        blanks = 0
+        current_set: Optional[_Range] = None
+
+        with open(file) as f:
+            for line_no, line in enumerate(f):
+                if line_no == 0:
+                    if current_config.reader.has_header:
+                        header_line = current_config.reader.set_header(line)
+                        continue
+                    else:
+                        header_line = current_config.reader.header
+                elif not line.strip() and not isinstance(current_config.splitter, LineSplitter):
+                    # Only count is we already have written or the sentence writing has started
+                    if len(sentence) > 0:
+                        blanks += 1
+                    continue
+
+                if line_no in dispatching.lines:                  # We begin a set
+                    current_set = dispatching.lines[line_no]
+                    sentence.append(line)
+                elif current_set and line_no != current_set.end:  # We are in the set
+                    sentence.append(line)
+                elif current_set and line_no == current_set.end:  # We are at the end of the set
+                    sentence.append(line)
+                    blanks = 0  # ToDo: Blanks are not really taken into account here...
+                    sentence = [x for x in sentence if x.strip()]
+                    add_sentence(
+                        output_folder=output_folder,
+                        dataset=current_set.dataset,
+                        filename=file,
+                        sentence=sentence,
+                        source_marker=current_config.column_marker,
+                        output_marker=config.output.column_marker
+                    )
+                    training_tokens[current_set.dataset] += len(sentence)
+                    sentence = []
+
+            # Finally, if there is something remaining
+            if len(sentence) and current_set:
+                add_sentence(
+                    output_folder=output_folder,
+                    dataset=current_set.dataset,
+                    filename=file,
+                    sentence=sentence,
+                    source_marker=current_config.column_marker,
+                    output_marker=config.output.column_marker
+                )
+                training_tokens[current_set.dataset] += len(sentence)
+
+        # Add the header to the files
+        created_files.update(
+            _add_header(
+                output_folder=output_folder, training_tokens=training_tokens, header_line=header_line,
+                current_config=current_config, file=file
+            )
+        )
+
+        yield file, training_tokens
+
+        if config.postprocessings:
+            for post_processings in config.postprocessings:
+                for output_file in created_files:
+                    post_processings.apply(output_file, current_config)
+
+    if new_files:
+        # We have new files, we need to deal with them per usual
+        if not test_ratio:
+            raise ConfigError("Ratios were not given and we have a new file.")
+
+        for file, current_config in new_files:
+            yield from _single_file_dispatch(
+                config=config,
+                dev_ratio=dev_ratio,
+                test_ratio=test_ratio,
+                current_config=current_config,
+                verbose=verbose,
+                file=file,
+                output_folder=output_folder
+            )
+
+
+def glue(config: ProtogenieConfiguration, output_folder: str,
+         verbose: bool = True):
+    """
+
+    :param config:
+    :param output_folder:
+    :param verbose:
+    :return: Generator[data_type, filename, nb_chunks, nb_lines]
+    """
+    def write_sentence(sents: List[List[str]], dataset):
+        dataset.write("\n".join(config.output.column_marker.join(sent) for sent in sents)+"\n\n") # 2 new lines
+
+    for dataset_type in ["train", "test", "dev"]:
+        cur_dir = os.path.join(output_folder, dataset_type)
+
+        out = os.path.join(output_folder, dataset_type + ".tsv")
+        out = open(out, "w")
+        out.write(config.output.column_marker.join(config.output.header)+"\n")
+
+        for _, _, files in os.walk(cur_dir, topdown=False):
+            for file in files:
+                basename = os.path.basename(file)
+                tokens, chunks = 0, 0
+                # Output files necessarly have headers and empty lines as markers
+                with open(os.path.join(cur_dir, file)) as f:
+                    sentence = []
+                    for line_numb, line in enumerate(f.readlines()):
+                        line = line.strip()
+                        # If we met the header
+                        if line_numb == 0:
+                            cols = line.split(config.output.column_marker)
+                            header_map = [cols.index(head) for head in config.output.header]
+                            continue
+
+                        # If we have a sentence
+                        if not line and sentence:
+                            write_sentence(sentence, out)
+                            chunks += 1
+                            sentence = []
+                            continue
+
+                        mapped = line.split(config.output.column_marker)
+                        mapped = [mapped[index] for index in header_map]
+                        tokens += 1
+                        sentence.append(mapped)
+
+                    if sentence:
+                        write_sentence(sentence, out)
+                        chunks += 1
+
+                yield dataset_type, basename, chunks, tokens
+
+        out.close()
+    return []
+
+##################
+# Shared functions
+##################
 
 
 def _preview(file: str, current_config: CorpusConfiguration) -> Tuple[List[str], int, int, int]:
@@ -61,15 +272,12 @@ def _preview(file: str, current_config: CorpusConfiguration) -> Tuple[List[str],
         for line_no, line in enumerate(f):
             if line_no == 0:
                 if current_config.reader.has_header:
-                    header_line = current_config.reader.set_header(line.strip().split(current_config.column_marker))
+                    header_line = current_config.reader.set_header(line)
                     continue
 
             if line_no == 0 and current_config.reader.has_header:
                 continue  # Skip the first line in count if we have a header
-            unit_counts += int(current_config.splitter(
-                line,
-                reader=current_config.reader
-            ))
+            unit_counts += int(current_config.splitter(line, reader=current_config.reader            ))
             empty_lines += int(not bool(line.strip()))  # Count only lines if they are empty
 
     return header_line, unit_counts, empty_lines, line_no - int(current_config.reader.has_header) - empty_lines + 1
@@ -141,7 +349,9 @@ def _single_file_dispatch(
                     output_folder=output_folder,
                     dataset=dataset,
                     filename=file,
-                    sentence=sentence
+                    sentence=sentence,
+                    source_marker=current_config.column_marker,
+                    output_marker=config.output.column_marker
                 )
                 training_tokens[dataset] += len(sentence)
                 sentence = []
@@ -161,7 +371,9 @@ def _single_file_dispatch(
                 output_folder=output_folder,
                 dataset=dataset,
                 filename=file,
-                sentence=sentence
+                sentence=sentence,
+                source_marker=current_config.column_marker,
+                output_marker=config.output.column_marker
             )
             training_tokens[dataset] += len(sentence)
 
@@ -193,144 +405,3 @@ def _add_header(output_folder: str, file: str,
             with open(trg, "w") as f:
                 f.write(current_config.column_marker.join(header_line)+"\n"+content)
     return files
-
-@dataclass
-class _Range:
-    end: int
-    dataset: str
-
-
-@dataclass
-class _CorpusDispatched:
-    """ Item that contains informations about dispatching
-
-    Using dataclass mainly for typing"""
-    config: CorpusConfiguration
-    lines: Dict[int, _Range]
-
-
-def files_from_memory(
-        config: ProtogenieConfiguration, output_folder: str, memory_file: str,
-        verbose: bool = True, dev_ratio: float = None, test_ratio: float = None):
-    """ Regenerate a corpus using the same previously selected lined but potentially
-    adding files and different post-processing
-
-    :param config: Configuration
-    :param output_folder: Directory where to save files
-    :param memory_file: Memory file that holds lines to dispatch
-    :param verbose: Whether to print stuff
-    :param dev_ratio: Dev Ratio
-    :param test_ratio: Test ratio
-    """
-    memory = open(memory_file)
-    memory_reader = csv.reader(memory)
-
-    dispatcher: Dict[str, _CorpusDispatched] = {
-        os.path.realpath(real_path): _CorpusDispatched(config=corpus_config, lines={})
-        for unix_path, corpus_config in config.corpora.items()
-        for real_path in glob.glob(os.path.join(config.dir, unix_path))
-    }
-
-    # For each file, we build a map of the lines that needs to be dispatched
-    for line in memory_reader:
-        if not line:
-            continue
-        current_file, line_range, dataset_target = line
-
-        real_path = os.path.realpath(current_file)
-        if real_path in dispatcher:
-            start, end = tuple(map(int, line_range.split("-")))
-            dispatcher[real_path].lines[start] = _Range(end=end, dataset=dataset_target)
-    memory.close()
-
-    new_files = []
-    for file, dispatching in dispatcher.items():
-        if not dispatching.lines:
-            new_files.append((file, dispatching.config))
-            pass
-
-        # We set up a dictionary of token count to print nice
-        #  information later
-        training_tokens = {"test": 0, "dev": 0, "train": 0}
-
-        current_config = dispatching.config
-
-        header_line = []
-        created_files = set()
-        sentence = []
-        blanks = 0
-        current_set: Optional[_Range] = None
-
-        with open(file) as f:
-            for line_no, line in enumerate(f):
-                if line_no == 0:
-                    if current_config.reader.has_header:
-                        header_line = [current_config.reader.map_to[key]
-                                       for key in line.strip().split(current_config.column_marker) if key]
-                        continue
-                    else:
-                        header_line = current_config.reader.header
-                elif not line.strip() and not isinstance(current_config.splitter, LineSplitter):
-                    # Only count is we already have written or the sentence writing has started
-                    if len(sentence) > 0:
-                        blanks += 1
-                    continue
-
-                if line_no in dispatching.lines:                  # We begin a set
-                    current_set = dispatching.lines[line_no]
-                    sentence.append(line)
-                elif current_set and line_no != current_set.end:  # We are in the set
-                    sentence.append(line)
-                elif current_set and line_no == current_set.end:  # We are at the end of the set
-                    sentence.append(line)
-                    blanks = 0  # ToDo: Blanks are not really taken into account here...
-                    sentence = [x for x in sentence if x.strip()]
-                    add_sentence(
-                        output_folder=output_folder,
-                        dataset=current_set.dataset,
-                        filename=file,
-                        sentence=sentence
-                    )
-                    training_tokens[current_set.dataset] += len(sentence)
-                    sentence = []
-
-            # Finally, if there is something remaining
-            if len(sentence) and current_set:
-                add_sentence(
-                    output_folder=output_folder,
-                    dataset=current_set.dataset,
-                    filename=file,
-                    sentence=sentence
-                )
-                training_tokens[current_set.dataset] += len(sentence)
-
-        # Add the header to the files
-        created_files.update(
-            _add_header(
-                output_folder=output_folder, training_tokens=training_tokens, header_line=header_line,
-                current_config=current_config, file=file
-            )
-        )
-
-        yield file, training_tokens
-
-        if config.postprocessings:
-            for post_processings in config.postprocessings:
-                for output_file in created_files:
-                    post_processings.apply(output_file, current_config)
-
-    if new_files:
-        # We have new files, we need to deal with them per usual
-        if not test_ratio:
-            raise ConfigError("Ratios were not given and we have a new file.")
-
-        for file, current_config in new_files:
-            yield from _single_file_dispatch(
-                config=config,
-                dev_ratio=dev_ratio,
-                test_ratio=test_ratio,
-                current_config=current_config,
-                verbose=verbose,
-                file=file,
-                output_folder=output_folder
-            )
