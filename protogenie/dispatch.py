@@ -5,6 +5,7 @@ from typing import Dict, Optional, List, Set, Tuple
 from .splitters import LineSplitter
 import glob
 import os
+import math
 import csv
 
 
@@ -200,12 +201,13 @@ def files_from_memory(
 
 
 def glue(config: ProtogenieConfiguration, output_folder: str,
-         verbose: bool = True):
+         verbose: bool = True, reduce: Optional[float] = None, prefix: str = ""):
     """
 
     :param config:
     :param output_folder:
     :param verbose:
+    :param reduce: [Optional] Take only a portion of a float
     :return: Generator[data_type, filename, nb_chunks, nb_lines]
     """
     def write_sentence(sents: List[List[str]], dataset):
@@ -214,16 +216,18 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
     for dataset_type in ["train", "test", "dev"]:
         cur_dir = os.path.join(output_folder, dataset_type)
 
-        out = os.path.join(output_folder, dataset_type + ".tsv")
+        out = os.path.join(output_folder, prefix + dataset_type + ".tsv")
         out = open(out, "w")
         out.write(config.output.column_marker.join(config.output.header)+"\n")
 
         for _, _, files in os.walk(cur_dir, topdown=False):
             for file in files:
                 basename = os.path.basename(file)
-                tokens, chunks = 0, 0
+                tokens = [0]
+
                 # Output files necessarly have headers and empty lines as markers
                 with open(os.path.join(cur_dir, file)) as f:
+                    sentences = []
                     sentence = []
                     for line_numb, line in enumerate(f.readlines()):
                         line = line.strip()
@@ -235,21 +239,29 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
 
                         # If we have a sentence
                         if not line and sentence:
-                            write_sentence(sentence, out)
-                            chunks += 1
+                            sentences.append(sentence)
                             sentence = []
+                            tokens.append(0)
                             continue
 
                         mapped = line.split(config.output.column_marker)
                         mapped = [mapped[index] for index in header_map]
-                        tokens += 1
+                        tokens[-1] += 1
                         sentence.append(mapped)
 
                     if sentence:
-                        write_sentence(sentence, out)
-                        chunks += 1
+                        sentences.append(sentence)
 
-                yield dataset_type, basename, chunks, tokens
+                    max_int = len(sentences)
+                    if reduce:# and dataset_type == "train":
+                        max_int = math.ceil(reduce * max_int)
+
+                    for sentence in sentences[:max_int]:
+                        if dataset_type == "dev":
+                            print(sentence)
+                        write_sentence(sentence, out)
+
+                yield dataset_type, basename, len(sentences[:max_int]), sum(tokens[:max_int])
 
         out.close()
     return []

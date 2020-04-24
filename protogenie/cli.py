@@ -1,13 +1,14 @@
 from argparse import ArgumentParser
 import os
 import shutil
+from typing import Optional
 
 from .configs import ProtogenieConfiguration
-from .dispatch import split_files, files_from_memory, glue
 from .dispatch import split_files, files_from_memory, glue
 from .cli_utils import check_ratio
 
 import click
+
 
 @click.group()
 def main():
@@ -94,13 +95,15 @@ def cli_rebuild(file, memory, output, clear=False, dev=.0, test=0.2):
 @main.command("concat")
 @click.argument("config", type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument("output",  type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.option("-r", "--reduce", type=click.FLOAT, default=None, help="Reduce training corpus to the given percentage")
+@click.option("-r", "--prefix", type=click.STRING, default="", help="Prefix for output files")
 @click.option("-v", "--verbose", default=False, is_flag=True, help="Print text level stats")
-def cli_concat(config, output, verbose):
+def cli_concat(config, output, reduce, verbose, prefix):
     """Given [MEMORY] file, uses [FILE] config file to generate a new corpus
 
     This method detects new files and treat them if --test and --dev are given
     """
-    concat(config, output, verbose=verbose)
+    concat(config, output, verbose=verbose, reduce=reduce, prefix=prefix)
 
 
 def dispatch(
@@ -158,14 +161,19 @@ def from_memory(memory_file: str, config: str, output_dir: str,
     return config
 
 
-def concat(config: str, output_dir: str, verbose: bool = True) -> ProtogenieConfiguration:
+def concat(config: str, output_dir: str, verbose: bool = True, reduce: Optional[float] = None,
+           prefix: str = ""
+           ) -> ProtogenieConfiguration:
+    if reduce and reduce > 1 or reduce < 0.:
+        raise click.BadParameter("Reduce should be in the range ]0:1]")
     config = ProtogenieConfiguration.from_xml(config)
     dataset = None
 
     max_len = 50
     template = '    {:'+str(max_len)+'s} {:>10d} {:>10d}'
     chunks_lines = {}
-    for data_type, filename, nb_chunks, nb_lines in glue(config=config, output_folder=output_dir, verbose=verbose):
+    for data_type, filename, nb_chunks, nb_lines in glue(
+            config=config, output_folder=output_dir, verbose=verbose, reduce=reduce, prefix=prefix):
         if dataset != data_type:
             if dataset in chunks_lines:
                 click.echo("# {}'s statistics".format(dataset))
