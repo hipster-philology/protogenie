@@ -10,7 +10,7 @@
         </header>
     </output>
     <postprocessing>
-        <disambiguation matchPattern="(\d+)$" source-column="lemma" new-column="lemma-disambiguation-index"/>
+        <disambiguation matchPattern="(\d+)$" source="lemma" new-column="lemma-disambiguation-index"/>
     </postprocessing>
     <memory path="memory.csv" />
     <default-header>

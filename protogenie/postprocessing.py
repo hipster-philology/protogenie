@@ -88,7 +88,7 @@ class Disambiguation(PostProcessing):
     @classmethod
     def from_xml(cls, node: Element) -> "Disambiguation":
         return cls(
-            lemma_key=node.attrib["source-column"],
+            lemma_key=node.attrib["source"],
             disambiguation_key=node.attrib["new-column"],
             match_pattern=node.attrib["matchPattern"],
             keep="keep" in node.attrib,
