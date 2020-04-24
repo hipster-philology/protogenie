@@ -120,3 +120,32 @@ class TestPostProcessing(_TestHelper):
                          "There should be 80% of total tokens")
         self.assertEqual(romnums, 300*0.8*0.2,
                          "There should be 20% of the train corpus that were numerals")
+
+    def test_clitics(self):
+        """ Check that clitics are dealt with correctly"""
+        _, config = self._dispatch(
+            output_dir="./tests/tests_output/",
+            train=0.8,
+            dev=0.1,
+            test=0.1,
+            config="./tests/test_config/clitics.xml"
+        )
+        # Checking all corpora just to be sure
+        tokens = 0
+        clitics = 0
+
+        for line in self.read_file("train", "clitics.tsv"):
+            if line:  # Some line can be empty
+                if "界" in line["lemma"]:
+                    clitics += 1
+                    self.assertTrue(line["token"].endswith("ne"), "Clitic has been passed to token")
+                    self.assertTrue(line["lemma"].endswith("界ne"), "Clitic has been passed to lemma with glue")
+                    self.assertFalse(line["token"].endswith("界ne"), "Clitic has been passed to token without glue")
+                tokens += 1
+                print(line)
+
+        print(tokens)
+        self.assertEqual(tokens, 300*0.8 * 0.8,
+                         "There should be 80% of total tokens, and 20% of that should have been removed (2 clitics"
+                         "every 10 words)")
+        self.assertEqual(clitics, 300*0.8*0.2, "There should be 2 clitics for 8 words")

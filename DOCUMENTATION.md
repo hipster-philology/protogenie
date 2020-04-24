@@ -277,11 +277,9 @@ The model is the following:
 <config>
     <!--...-->
     <postprocessing>
-        <clitic type="enclitic" glue_char="界">
-            <when matchPattern="^ne2$" source="lemma">
-                <transfer>lemma</transfer>           
-                <transfer no-glue-char="true">token</transfer> 
-            </when>
+        <clitic type="enclitic" glue_char="界" matchPattern="^ne2$" source="lemma">
+            <transfer>lemma</transfer>           
+            <transfer no-glue-char="true">token</transfer>
         </clitic>
     </postprocessing>
     <!--...-->

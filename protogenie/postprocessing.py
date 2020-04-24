@@ -4,8 +4,9 @@ import tempfile
 import regex as re
 from xml.etree.ElementTree import Element
 import csv
-from typing import List, ClassVar
+from typing import List, ClassVar, Tuple, Dict
 from abc import ABC, abstractmethod
+from collections import namedtuple
 
 
 class PostProcessing(ABC):
@@ -202,4 +203,93 @@ class Skip(PostProcessing):
         return Skip(
             match_pattern=node.attrib["matchPattern"],
             source=node.attrib["source"]
+        )
+
+
+class Clitic(PostProcessing):
+    """ If the matchPattern matches target column, the line is removed from the post-processed output
+    """
+    NodeName = "clitic"
+
+    Transfer = namedtuple("Transfer", ["col", "glue"])
+
+    def __init__(
+        self, match_pattern: str, source: str, glue: str, transfers: List[Tuple[str, bool]]
+    ):
+        super(Clitic, self).__init__()
+        self.match_pattern: re.Regex = re.compile(match_pattern)
+        self.source: str = source
+        self.glue = glue
+        _tr = {False: "", True: self.glue}
+        self.transfers: List[Clitic.Transfer] = [
+            Clitic.Transfer(key, _tr[has_glue])
+            for key, has_glue in transfers
+            if not print(key, has_glue)
+        ]
+
+    def apply(self, file_path: str, config: "CorpusConfiguration"):
+        temp = tempfile.TemporaryFile(mode="w+")  # 2
+        default = ("", "")
+        try:
+            with open(file_path) as file:
+                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                header: List[str] = []
+                sequence = []
+                # [Int = Line to apply modifications to, Dict[Column name, Tuple[Glue, Value]]]
+                modifications: List[Tuple[int, Dict[str, Tuple[str, str]]]] = []
+                for nb_line, line in enumerate(csv_reader):  # The file should already have been open
+                    if nb_line == 0:
+                        temp.write(config.column_marker.join(line)+"\n")
+                        header = line
+                        continue
+                    elif not line:
+                        for target_line, modif in modifications:
+                            sequence[target_line] = {
+                                column: modif.get(column, default)[0].join(
+                                    [value, modif.get(column, default)[1]]
+                                )
+                                for column, value in sequence[target_line].items()
+                            }
+                        temp.write("\n".join([
+                            config.column_marker.join(list(l.values()))
+                            for l in sequence
+                        ])+"\n")
+                        sequence = []
+                        modifications = []
+                        continue
+
+                    lines = dict(zip(header, line))
+
+                    # If it matches, we give it to the previous / original line
+                    if self.match_pattern.match(lines[self.source]):
+                        modifications.append(
+                            (
+                                len(sequence) - 1 -len(modifications),
+                                {key: (keep, lines[key]) for (key, keep) in self.transfers}
+                            )
+                        )
+                        continue
+
+                    # config.column_marker.join(list(lines.values()))
+                    sequence.append(lines)
+
+            with open(file_path, "w") as f:
+                temp.seek(0)
+                f.write(temp.read())
+        finally:
+            temp.close()  # 5
+
+    @classmethod
+    def from_xml(cls, node: Element) -> "Clitic":
+        return cls(
+            match_pattern=node.attrib["matchPattern"],
+            source=node.attrib["source"],
+            glue=node.attrib["glue_char"],
+            transfers=[
+                (
+                    tr.text,
+                    tr.attrib.get("no-glue-char", "false").lower() == "false"
+                )
+                for tr in node.findall("transfer")
+            ]
         )

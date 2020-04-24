@@ -86,24 +86,20 @@
                     <a:documentation>Character to be used as glue between word and clitic</a:documentation>
                     <text/>
                 </attribute>
+                <ref name="source" />
+                <ref name="matchPattern" />
             </interleave>
-            <zeroOrMore>
-                <element name="when">
-                    <ref name="source" />
-                    <ref name="matchPattern" />
-                    <oneOrMore>
-                        <element name="transfer">
-                            <a:documentation>Define which column should be transfered from current row to the glued one</a:documentation>
-                            <optional>
-                                 <attribute name="no-glue-char">
-                                     <data type="boolean"/>
-                                 </attribute>
-                            </optional>
-                            <text />
-                        </element>
-                    </oneOrMore>
+            <oneOrMore>
+                <element name="transfer">
+                    <a:documentation>Define which column should be transfered from current row to the glued one</a:documentation>
+                    <optional>
+                         <attribute name="no-glue-char">
+                             <data type="boolean"/>
+                         </attribute>
+                    </optional>
+                    <text />
                 </element>
-            </zeroOrMore>
+            </oneOrMore>
         </element>
     </define>
     <define name="toolbox">
