@@ -6,11 +6,13 @@
             <key>token</key>
             <key>lemma</key>
             <key>pos</key>
-            <key>lemma-disambiguation-index</key>
         </header>
     </output>
     <postprocessing>
-        <disambiguation matchPattern="(\d+)$" source="lemma" new-column="lemma-disambiguation-index"/>
+        <clitic type="enclitic" glue_char="界" matchPattern="^ne$" source="lemma">
+            <transfer>lemma</transfer>           
+            <transfer no-glue-char="true">token</transfer>
+        </clitic>
     </postprocessing>
     <memory path="memory.csv" />
     <default-header>
@@ -21,7 +23,7 @@
         </header>
     </default-header>
     <corpora>
-        <corpus path="../test_data/disambiguation.tsv" column_marker="TAB">
+        <corpus path="../test_data/clitics.tsv" column_marker="TAB">
             <splitter name="file_split"/>
             <header type="default" />
         </corpus>

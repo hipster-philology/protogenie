@@ -243,3 +243,61 @@ While XML validation is not a feature of Protogenie, you might be interested in 
 - Oxygen XML Editor provides validation while editing. 
 - Probably [XML Mind Editor](https://www.xmlmind.com/xmleditor/download.shtml) does to.
 - Feel free to propose others if you have knowledge we don't
+
+## Post-processing
+
+Protogenie includes post-processing options: those will be run over the output of the previously split files. They are 
+run sequentially (one after the other) and should be added in the node `<postprocessing>` of `<config>` such as below.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <output/><!-- Need completion-->
+    <postprocessing>
+        <!-- Post-processing intervention are found here -->
+    </postprocessing>
+    <corpora>
+        <corpus>
+            <splitter /><!-- Need completion-->
+            <header /><!-- Need completion-->
+        </corpus>
+    </corpora>
+</config>
+```
+
+### Clitic
+
+If your corpus contains tokens separated tokens, you might be interested in rejoining them in order to train your corpus
+to recognize specific enclitics or proclitics, such as `Nihilne in mentem?` where `Nihil` and `-ne` are technically
+two separate tokens.
+
+The model is the following:
+
+```xml
+<config>
+    <!--...-->
+    <postprocessing>
+        <clitic type="enclitic" glue_char="界" matchPattern="^ne2$" source="lemma">
+            <transfer>lemma</transfer>           
+            <transfer no-glue-char="true">token</transfer>
+        </clitic>
+    </postprocessing>
+    <!--...-->
+</config>
+```
+
+Confronted with the following input
+
+| token | lemma | POS |
+| ----- | ----- | --- |
+| nihil | nihil | PRO |
+| ne | ne2 | CONJ |
+
+It will produces the following output
+
+| token | lemma | POS |
+| ----- | ----- | --- |
+| nihil*ne* | nihil*界ne2* | PRO |
+
+The glue token is not applied on token, the lemma value is transfered to the previous row and the POS is lost. 
+`@glue_char` is used to concatenate columns such as `lemma` here,
