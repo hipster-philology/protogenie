@@ -96,7 +96,7 @@ def cli_rebuild(file, memory, output, clear=False, dev=.0, test=0.2):
 @click.argument("config", type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument("output",  type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option("-r", "--reduce", type=click.FLOAT, default=None, help="Reduce training corpus to the given percentage")
-@click.option("-r", "--prefix", type=click.STRING, default="", help="Prefix for output files")
+@click.option("-p", "--prefix", type=click.STRING, default="", help="Prefix for output files")
 @click.option("-v", "--verbose", default=False, is_flag=True, help="Print text level stats")
 def cli_concat(config, output, reduce, verbose, prefix):
     """Given [MEMORY] file, uses [FILE] config file to generate a new corpus
@@ -164,8 +164,9 @@ def from_memory(memory_file: str, config: str, output_dir: str,
 def concat(config: str, output_dir: str, verbose: bool = True, reduce: Optional[float] = None,
            prefix: str = ""
            ) -> ProtogenieConfiguration:
-    if reduce and reduce > 1 or reduce < 0.:
-        raise click.BadParameter("Reduce should be in the range ]0:1]")
+    if reduce is not None:
+        if reduce > 1 or reduce < 0.:
+            raise click.BadParameter("Reduce should be in the range ]0:1]")
     config = ProtogenieConfiguration.from_xml(config)
     dataset = None
 
