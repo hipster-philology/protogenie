@@ -145,7 +145,8 @@ if False:
             if (lines + 1) % 20 == 0:
                 f.write("\n")
 
-if True:
+
+if False:
     at_least_one_zero = False
     at_least_one_one = False
     with open("roman_numbers.tsv", "w") as f:
@@ -157,6 +158,22 @@ if True:
                     rand2="RomNum",
                     rand3=randint
                 ))
+            else:
+                f.write("{rand1}\t{rand2}\t{rand3}\n".format(
+                    rand1=randomString(start="lem_", length=10),
+                    rand2=randomString(start="pos_", length=10),
+                    rand3=randomString(start="tok_", length=10)
+                ))
+
+            if (lines + 1) % 10 == 0: # Window of 10...
+                f.write("\n")
+
+
+if True:
+    with open("clitics.tsv", "w") as f:
+        for lines in range(300):
+            if (lines + 1) % 5 == 0:
+                f.write("ne\tPOS\tne\n")
             else:
                 f.write("{rand1}\t{rand2}\t{rand3}\n".format(
                     rand1=randomString(start="lem_", length=10),

@@ -66,7 +66,40 @@
                 <zeroOrMore>
                     <ref name="toolbox"/>
                 </zeroOrMore>
+                <zeroOrMore>
+                    <ref name="clitic"/>
+                </zeroOrMore>
             </interleave>
+        </element>
+    </define>
+    <define name="clitic">
+        <element name="clitic">
+            <a:documentation>Deals with enclitics <!-- and proclitics --></a:documentation>
+            <interleave>
+                <attribute name="type">
+                    <choice>
+                        <value>enclitic</value>
+                        <!--<value>proclitic</value> Not deal with at the moment. --> 
+                    </choice>
+                </attribute>
+                <attribute name="glue_char">
+                    <a:documentation>Character to be used as glue between word and clitic</a:documentation>
+                    <text/>
+                </attribute>
+                <ref name="source" />
+                <ref name="matchPattern" />
+            </interleave>
+            <oneOrMore>
+                <element name="transfer">
+                    <a:documentation>Define which column should be transfered from current row to the glued one</a:documentation>
+                    <optional>
+                         <attribute name="no-glue-char">
+                             <data type="boolean"/>
+                         </attribute>
+                    </optional>
+                    <text />
+                </element>
+            </oneOrMore>
         </element>
     </define>
     <define name="toolbox">
@@ -91,22 +124,25 @@
             <data type="string" />
         </attribute>
     </define>
+    <define name="source">
+        <attribute name="source">
+            <a:documentation>Source column that should be matched by matchPattern</a:documentation>
+            <data type="string" />
+        </attribute>
+    </define>
     <define name="skip">
         <element name="skip">
             <a:documentation>Removes a line if it matches @matchPattern</a:documentation>
             <interleave>
                 <ref name="matchPattern" />
-                <attribute name="source">
-                    <a:documentation>Node that should be matched by matchPattern</a:documentation>
-                    <data type="string" />
-                </attribute>
+                <ref name="source" />
             </interleave>
             <empty />
         </element>
     </define>
     <define name="applyTo">
         <element name="applyTo">
-            <a:documentation>If source is different from target, groupes are deleted in source</a:documentation>
+            <a:documentation>If source is different from target, groups are deleted in source</a:documentation>
             <attribute name="source">
                 <a:documentation>Column name that should be the trigger of the function (eg. matched by matchPattern)</a:documentation>
                 <text/>
@@ -138,10 +174,7 @@
             <a:documentation>Based on a source column, creates a new column that receives the group matched in @matchPattern. Is meant for
             disambiguation but can be used for other things, such as named entities extraction and such.</a:documentation>
             <interleave>
-               <attribute name="source-column">
-                   <a:documentation>Source column from which data should be matched and retrieved</a:documentation>
-                   <data type="string"/>
-               </attribute>
+               <ref name="source" />
                <ref name="matchPattern" />
                 <attribute name="new-column">
                     <a:documentation>Name of the new column that will be created using the data from matchPattern</a:documentation>
@@ -258,10 +291,7 @@
                         <value>regexp</value>
                     </attribute>
                     <ref name="matchPattern" />
-                    <attribute name="source">
-                        <a:documentation>Source column that should be matched by matchPattern</a:documentation>
-                        <data type="string" />
-                    </attribute>
+                    <ref name="source" />
                 </group>
                 <attribute name="name">
                     <a:documentation>Each empty line represent a new passage</a:documentation>
