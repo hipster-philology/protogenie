@@ -5,6 +5,20 @@ Protogenie
 [![Build Status](https://travis-ci.org/hipster-philology/protogenie.svg?branch=master)](https://travis-ci.org/hipster-philology/protogenie)
 [![PyPI](https://img.shields.io/pypi/v/protogenie)](https://pypi.org/project/protogenie)
 
+## How to cite
+
+```bibtex
+@software{thibault_clerice_2020_3883586,
+  author       = {Thibault Clérice},
+  title        = {Protogenie, post-processing for NLP dataset},
+  month        = jun,
+  year         = 2020,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.3883585},
+  url          = {https://doi.org/10.5281/zenodo.3883585}
+}
+```
+
 ## Install from release
 
 ```bash
