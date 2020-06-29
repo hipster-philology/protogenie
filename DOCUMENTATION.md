@@ -1,7 +1,7 @@
 # Documentation
 
 The purpose of _Protogenie_ is to prepare data to train a lemmatiser and/or POS tagger.
-All available data is split into three different folders:
+All available data is split into three different folders (a second command is responsible for "glueing" things together):
 1. A train set
 2. An development set
 3. A testing (or evaluation) set
@@ -22,7 +22,7 @@ FOLDER
         |-mydata.tsv
 ```
 
-Using the same exmaple, the repartition of the data between the three folders is done directly with the command line:
+Using the same example, the repartition of the data between the three folders is done directly with the command line:
 
 ```bash
 $ protogenie build mydata.tsv -d 0.1 -e 0.1
@@ -165,10 +165,10 @@ Say you have two files, whose headers are respectively: `form;lemma;POS` and `to
             <key>POS</key>
         </header>
     </corpus>
-    <!-- key=token is transformed into the map-to value "form" -->
     <corpus path="./2.csv" column_marker=";">
         <header type="explicit">
             <key>lemma</key>
+            <!-- key=token is transformed into the map-to value "form" -->
             <key map-to="form">token</key>
             <key>POS</key>
         </header>
