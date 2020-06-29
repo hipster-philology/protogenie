@@ -41,7 +41,7 @@ The `-d` (for `development`) and the `-e` (for `evaluation` or testing) flags ar
 
 ## Start configuration
 
-To organise such a repartition, _Protogenie_ requires configuration files wirtten in XML. This design choice was made to allow for validation and control of the configuration (this way, if your configuration file is valid but it does not do what it should do, we know it's a bug!).
+To organise such a repartition, _Protogenie_ requires configuration files written in XML. This design choice was made to allow for validation and control of the configuration (this way, if your configuration file is valid but it does not do what it should do, we know it's a bug!).
 
 The scheme used for validation is available inside the package, and with each version by simply typing `protogenie get-scheme [DESTINATION]`. You can also find the latest version here:
  [https://hipster-philology.github.io/protogenie/protogenie/schema.rng](https://hipster-philology.github.io/protogenie/protogenie/schema.rng)
