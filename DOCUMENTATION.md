@@ -298,7 +298,7 @@ The empty line splitter will split things this way : `(1, 2)`, `(., 3)`, and `(?
 The `<output>` element allows user to control the format of the dev, train and test files.
 If we use the `<default-header>`, it is possible to re-use it the following way:
 
-````xml
+```xml
 <output column_marker="TAB">
     <header name="default"/>
 </output>
