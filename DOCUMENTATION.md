@@ -1,7 +1,7 @@
 # Documentation
 
 The purpose of _Protogenie_ is to prepare data to train a lemmatiser and/or POS tagger.
-All the training data is split into three different files:
+All available data is split into three different folders:
 1. A train set
 2. An development set
 3. A testing (or evaluation) set
@@ -22,7 +22,7 @@ FOLDER
         |-mydata.tsv
 ```
 
-Using the same exmaple, the repartition of the data between the three files is done directly with the command line:
+Using the same exmaple, the repartition of the data between the three folders is done directly with the command line:
 
 ```bash
 $ protogenie build mydata.tsv -d 0.1 -e 0.1
@@ -34,7 +34,7 @@ The `-d` (for `development`) and the `-e` (for `evaluation` or testing) flags ar
 2. 10% for the eval/test set
 3. 80% for the train set
 
-<span style="color:red; font-weight:bold">_Protogenie_ does not create test sets directly from tokens, but from groups of tokens (_e.g._ sentences). If the dataset is small, the amount of tokens might not be equal to the expected percentages.</span>
+<span style="color:red; font-weight:bold">_Protogenie_ does not create test sets directly from tokens, but from groups of tokens (_e.g._ sentences). If the dataset is small, the amount of tokens might not be equal to the expected percentages – on the other hand, on rather larger corpora (>200/300k tokens), there should be no problem.</span>
 
 
 # Configuration file
@@ -104,7 +104,7 @@ my_corpora/two_file.tsv
 my_config/config.xml
 ```
 
-we will have `path='../my_corpora/one_file.tsv'`.
+we will have `path='../my_corpora/one_file.tsv'`. It is possible to grab all the files with a joker `path='../my_corpora/*.tsv'`.
 
 ### `@column_marker`
 
@@ -154,8 +154,7 @@ This example will ignore `POS` column if there was one.
 
 #### When your headers differ
 
-Say you have two files, whose headers are: `form;lemma;POS` and `token;lemma;POS`. Well, we got you covered: if you want
-to map `token` to `form`, simply use the `map-to` attribute:
+Say you have two files, whose headers are respectively: `form;lemma;POS` and `token;lemma;POS`. Well, we got you covered: if you want to map `token` to `form`, simply use the `map-to` attribute:
 
 ```xml
 <corpora>
@@ -166,6 +165,7 @@ to map `token` to `form`, simply use the `map-to` attribute:
             <key>POS</key>
         </header>
     </corpus>
+    <!-- key=token is transformed into the map-to value "form" -->
     <corpus path="./2.csv" column_marker=";">
         <header type="explicit">
             <key>lemma</key>
@@ -217,7 +217,7 @@ We got you covered. You can declare a default header and use it when appropriate
 ## `<splitter>`
 
 Now that we now how to read the files, it's time to cut them ! Splitters are responsible for creating chunks from your
-source file. For exemple, if you have 100 sentences and you use the [Punctuation Splitter](#punctuation-splitter), these
+source file. For exemple, if you have 100 sentences and you use the [Regular Expression splitter](#regular-expression-splitter), these
 sentences will be treated as single chunk. If you have a training ratio of 0.8, 80 sentences will go to the `train`
 folder.
 
