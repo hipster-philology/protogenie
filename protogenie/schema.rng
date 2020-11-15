@@ -8,7 +8,9 @@
                 https://github.com/hipster-philology/ppa-spliter</a:documentation>
             <interleave>
                 <optional><ref name="post-processing"/></optional>
-                <ref name="corpora"/>
+                <oneOrMore>
+                    <ref name="corpora"/>
+                </oneOrMore>
                 <!-- Optional for now -->
                 <ref name="output"/>
                 <optional>
@@ -205,6 +207,9 @@
     <define name="corpora">
         <a:documentation>This contains all corpora that should be split by Protogeneia</a:documentation>
         <element name="corpora">
+            <optional>
+                <attribute name="xml:base" />
+            </optional>
             <oneOrMore>
                 <ref name="corpus"/>
             </oneOrMore>

@@ -2,6 +2,9 @@ from typing import List, Tuple, Dict, Union, Optional
 from xml.etree.ElementTree import Element
 
 
+class InvalidLine(Exception):
+    """ """
+
 class Reader(object):
     @property
     def init_params(self):
@@ -26,9 +29,12 @@ class Reader(object):
             self.map_to = {key: mapped or key for key, mapped in keys}
 
     def get_column(self, line: List[str], column: str) -> str:
-        """ Given a list of tokens, chez if we have it in our header"""
+        """ Given a list of tokens, check if we have it in our header"""
         if column in self._reverse_map:
-            return line[self._reverse_map[column]]
+            try:
+                return line[self._reverse_map[column]]
+            except IndexError:
+                raise InvalidLine(f"Column {column} was not found in the line {'  |  '.join(line)}")
 
         for pos, (value, key) in enumerate(zip(line, self.header)):
             if key == column:
@@ -55,7 +61,7 @@ class Reader(object):
         self._header = [
             self.map_to[key]
             for key in line.strip().split(self.column_marker)
-            if key
+            if key and key in self.map_to
         ]
         return self._header
 

@@ -3,6 +3,8 @@ from .configs import CorpusConfiguration, ProtogenieConfiguration
 from dataclasses import dataclass
 from typing import Dict, Optional, List, Set, Tuple
 from .splitters import LineSplitter
+from .reader import InvalidLine
+from warnings import warn
 import glob
 import os
 import math
@@ -245,7 +247,10 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
                             continue
 
                         mapped = line.split(config.output.column_marker)
-                        mapped = [mapped[index] for index in header_map]
+                        try:
+                            mapped = [mapped[index] for index in header_map]
+                        except IndexError:
+                            warn(f"Invalid line n{line_numb} in {f.name}")
                         tokens[-1] += 1
                         sentence.append(mapped)
 
@@ -257,8 +262,6 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
                         max_int = math.ceil(reduce * max_int)
 
                     for sentence in sentences[:max_int]:
-                        if dataset_type == "dev":
-                            print(sentence)
                         write_sentence(sentence, out)
 
                 yield dataset_type, basename, len(sentences[:max_int]), sum(tokens[:max_int])
@@ -289,7 +292,10 @@ def _preview(file: str, current_config: CorpusConfiguration) -> Tuple[List[str],
 
             if line_no == 0 and current_config.reader.has_header:
                 continue  # Skip the first line in count if we have a header
-            unit_counts += int(current_config.splitter(line, reader=current_config.reader            ))
+            try:
+                unit_counts += int(current_config.splitter(line, reader=current_config.reader))
+            except InvalidLine as E:
+                warn(f"Line {line_no} is invalid: `{line.strip()}`")
             empty_lines += int(not bool(line.strip()))  # Count only lines if they are empty
 
     return header_line, unit_counts, empty_lines, line_no - int(current_config.reader.has_header) - empty_lines + 1
@@ -343,14 +349,20 @@ def _single_file_dispatch(
         for line_no, line in enumerate(f):
             if line_no == 0 and current_config.reader.has_header:
                 continue
+
             elif not line.strip() and not isinstance(current_config.splitter, LineSplitter):
                 # Only count is we already have written or the sentence writing has started
                 if len(sentence) > 0:
                     blanks += 1
                 continue
 
+            try:
+                is_splitting = current_config.splitter(line, reader=current_config.reader)
+            except InvalidLine:
+                warn(f"InvalidLine {line_no}")
+                continue
             sentence.append(line)
-            if current_config.splitter(line, reader=current_config.reader):
+            if is_splitting:
                 dataset = target_dataset.pop(0)
 
                 if memory:
