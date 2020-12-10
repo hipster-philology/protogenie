@@ -160,7 +160,7 @@
                <attribute name="column-token"><data type="string"/></attribute>
                <optional><attribute name="column-lemma"><data type="string"/></attribute></optional>
                <optional>
-                   <attribute name="caps-to-utf8-marker">
+                   <attribute name="utf8-marker-for-caps">
                        <a:documentation>Convert capitals to lower-case + UTF8 marker. It inserts the 🨁 character after capitals (NEUTRAL CHESS QUEEN)</a:documentation>
                        <data type="boolean"/>
                    </attribute>
