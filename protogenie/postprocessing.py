@@ -422,7 +422,8 @@ class Capitalize(PostProcessing):
                      file_path: str, config: "CorpusConfiguration") -> Dict[str, str]:
         if self.first_word and self.sentence_matcher.match(header, values):
             self.first_word_state = True
-            return dict(zip(header, values))
+            if values:
+                return dict(zip(header, values))
 
         if not values or len(header) != len(values):
             return {}
@@ -438,7 +439,10 @@ class Capitalize(PostProcessing):
         elif self.first_letters > .0 and self._files_tokens[file_path].pop():
             line[self.column_token] = line[self.column_token].capitalize()
 
-        line[self.column_token] = self.RE_Upper.sub(self._replace_caps, line[self.column_token])
+        if self.apply_unicode_marker:
+            line[self.column_token] = self.RE_Upper.sub(self._replace_caps, line[self.column_token])
+            if self.column_lemma:
+                line[self.column_lemma] = self.RE_Upper.sub(self._replace_caps, line[self.column_lemma])
 
         self.first_word_state = False
         return line
@@ -489,7 +493,7 @@ class Capitalize(PostProcessing):
             first_word=first_word,
             first_letters=first_letters,
             sentence_matcher=sentence_marker,
-            apply_unicode_marker=node.attrib.get("utf8-marker-for-caps", "true").lower() == "true",
+            apply_unicode_marker=node.attrib.get("utf8-marker-for-caps", "false").lower() == "true",
             column_token=node.attrib["column-token"],
             column_lemma=node.attrib.get("column-lemma")
         )

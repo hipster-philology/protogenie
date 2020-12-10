@@ -52,6 +52,7 @@ def cli_build(file, output="./output", no_split=False, clear=False, train=0.8, d
             print("\tData were not removed")
     if no_split:
         train, test, dev = 1, 0, 0
+
     dispatch(
         config=file,
         train=train,

@@ -246,7 +246,12 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
                             continue
 
                         mapped = line.split(config.output.column_marker)
-                        mapped = [mapped[index] for index in header_map]
+                        if not "".join(mapped).strip():
+                            continue
+                        try:
+                            mapped = [mapped[index] for index in header_map]
+                        except IndexError:
+                            raise ValueError(f"Line {line_numb} failing in {file}: {mapped}")
                         tokens[-1] += 1
                         sentence.append(mapped)
 
@@ -258,8 +263,8 @@ def glue(config: ProtogenieConfiguration, output_folder: str,
                         max_int = math.ceil(reduce * max_int)
 
                     for sentence in sentences[:max_int]:
-                        if dataset_type == "dev":
-                            print(sentence)
+                        #if dataset_type == "dev":
+                        #    print(sentence)
                         write_sentence(sentence, out)
 
                 yield dataset_type, basename, len(sentences[:max_int]), sum(tokens[:max_int])
@@ -315,7 +320,7 @@ def _single_file_dispatch(
 
     if verbose:
         if no_split is True:
-            print("Not splitting file {filename}")
+            print("Not splitting file {filename}".format(filename=file))
         else:
             print("{unit_count} {unit_name} to dispatch in {filename} ({lines} full, {lines_empty} empty)".format(
                 filename=file, unit_name=current_config.unit_name, unit_count=unit_counts,
@@ -385,9 +390,12 @@ def _single_file_dispatch(
         if len(sentence):
             try:
                 dataset = target_dataset.pop(0)
-                print("last dataset ?")
+                # print("last dataset ?")
             except Exception:
-                dataset = "train"
+                if no_split:
+                    dataset = "output"
+                else:
+                    dataset = "train"
 
             if memory:
                 memory.writerow([file, "{}-{}".format(line_no - len(sentence) + 1 - blanks, line_no), dataset])
