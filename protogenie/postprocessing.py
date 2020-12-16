@@ -144,7 +144,12 @@ class Disambiguation(PostProcessing):
                         continue
                     lines = dict(zip(header, line))
 
-                    found = self.match_pattern.findall(lines[self.lemma_key])
+                    try:
+                        found = self.match_pattern.findall(lines[self.lemma_key])
+                    except KeyError:
+                        print(lines, nb_line)
+                        raise
+
                     if found:
                         lines[self.disambiguation_key] = found[0]
                         if not isinstance(found[0], str):
