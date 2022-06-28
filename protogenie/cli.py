@@ -33,9 +33,9 @@ def cli_scheme(dest):
 @click.argument("file", type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option("--output", default="./output", type=str, help="Directory where the output should be built")
 @click.option("-c", "--clear", default=False, is_flag=True, help="Clear the output directory")
-@click.option("-t", "--train", "train", default=0.8, type=float, help="Percentage of data to use for training")
-@click.option("-d", "--dev", "dev", default=0., type=float, help="Percentage of data to use for dev set")
-@click.option("-e", "--test", "test", default=0.2, type=float, help="Percentage of data to use for test set")
+@click.option("-t", "--train", "train", default=0.8, type=float, help="Ratio (on 1) of data to use for training")
+@click.option("-d", "--dev", "dev", default=0., type=float, help="Ratio (on 1) of data to use for dev set")
+@click.option("-e", "--test", "test", default=0.2, type=float, help="Ratio (on 1) of data to use for test set")
 @click.option("-v", "--verbose", default=False, is_flag=True, help="Print text level stats")
 def cli_build(file, output, clear=False, train=0.8, dev=.0, test=0.2, verbose=False):
     """ Uses [FILE] to split and pre-process a training corpus for NLP Tasks. File should follow the schema, see
