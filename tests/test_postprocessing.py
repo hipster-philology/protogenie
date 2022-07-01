@@ -297,7 +297,7 @@ class TestCapitalize(TestPostProcessing):
     def test_capitalized_and_indicator(self):
         """Ensure that replacement of caps by lowercase letter + SPECIAL CHAR is done"""
         conf = self._general_config_write("""
-         <capitalize column-token="token" caps-to-utf8-marker="true">
+         <capitalize column-token="token" utf8-marker-for-caps="true">
             <first-word when="never">
                 <sentence-marker name="empty_line"/>
             </first-word>
