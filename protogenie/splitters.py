@@ -106,7 +106,8 @@ class RegExpSplitter(_SplitterPrototype):
             self.matcher.search(
                 reader.get_column(
                     line.strip().split(reader.column_marker),
-                    self.source
+                    self.source,
+                    raise_on_none=True
                 )
             )
         )

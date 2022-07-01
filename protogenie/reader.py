@@ -2,6 +2,15 @@ from typing import List, Tuple, Dict, Union, Optional
 from xml.etree.ElementTree import Element
 
 
+class ColumnNotFound(Exception):
+    def __init__(self, msg):
+        super(ColumnNotFound, self).__init__()
+        self.msg = msg
+
+    def __repr__(self):
+        return f"ColumnNotFound {self.msg}"
+
+
 class Reader(object):
     @property
     def init_params(self):
@@ -25,15 +34,19 @@ class Reader(object):
         elif self.reader_type == "explicit":
             self.map_to = {key: mapped or key for key, mapped in keys}
 
-    def get_column(self, line: List[str], column: str) -> str:
+    def get_column(self, line: List[str], column: str, raise_on_none: bool = False) -> str:
         """ Given a list of tokens, chez if we have it in our header"""
         if column in self._reverse_map:
-            return line[self._reverse_map[column]]
+            if self._reverse_map[column] in line:
+                return line[self._reverse_map[column]]
 
         for pos, (value, key) in enumerate(zip(line, self.header)):
             if key == column:
                 self._reverse_map[column] = pos
                 return value
+
+        if raise_on_none:
+            raise ColumnNotFound(f"Column not found for Line=`{'    '.join(line)}`")
 
     @property
     def has_header(self):

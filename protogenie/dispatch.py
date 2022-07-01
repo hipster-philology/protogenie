@@ -3,6 +3,7 @@ from .configs import CorpusConfiguration, ProtogenieConfiguration
 from dataclasses import dataclass
 from typing import Dict, Optional, List, Set, Tuple
 from .splitters import LineSplitter
+from .reader import ColumnNotFound
 import glob
 import os
 import math
@@ -295,7 +296,11 @@ def _preview(file: str, current_config: CorpusConfiguration) -> Tuple[List[str],
 
             if line_no == 0 and current_config.reader.has_header:
                 continue  # Skip the first line in count if we have a header
-            unit_counts += int(current_config.splitter(line, reader=current_config.reader            ))
+            try:
+                unit_counts += int(current_config.splitter(line, reader=current_config.reader))
+            except ColumnNotFound as E:
+                print(f"ERROR: Line {line_no} is badly formated, column not found error encountered. "
+                      f"Text=`{line.strip()}`")
             empty_lines += int(not bool(line.strip()))  # Count only lines if they are empty
 
     return header_line, unit_counts, empty_lines, line_no - int(current_config.reader.has_header) - empty_lines + 1
@@ -362,8 +367,15 @@ def _single_file_dispatch(
                     blanks += 1
                 continue
 
+            try:
+                is_a_split = current_config.splitter(line, reader=current_config.reader)
+            except ColumnNotFound:
+                print(f"ERROR: Line {line_no} is badly formated, column not found error encountered. "
+                      f"Text=`{line.strip()}`")
+                continue
+
             sentence.append(line)
-            if current_config.splitter(line, reader=current_config.reader):
+            if is_a_split:
                 if no_split:
                     dataset = "output"
                 else:
