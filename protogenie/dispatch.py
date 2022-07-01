@@ -85,8 +85,8 @@ def files_from_memory(
     :param dev_ratio: Dev Ratio
     :param test_ratio: Test ratio
     """
-    memory = open(memory_file)
-    memory_reader = csv.reader(memory)
+    with open(memory_file) as memory:
+        memory_reader = list(csv.reader(memory))
 
     dispatcher: Dict[str, _CorpusDispatched] = {
         os.path.realpath(real_path): _CorpusDispatched(config=corpus_config, lines={})
@@ -104,7 +104,6 @@ def files_from_memory(
         if real_path in dispatcher:
             start, end = tuple(map(int, line_range.split("-")))
             dispatcher[real_path].lines[start] = _Range(end=end, dataset=dataset_target)
-    memory.close()
 
     new_files = []
     for file, dispatching in dispatcher.items():
@@ -185,6 +184,10 @@ def files_from_memory(
                 for output_file in created_files:
                     post_processings.apply(output_file, current_config)
 
+    memory = open(memory_file, "w")
+    writer = csv.writer(memory)
+    writer.writerows(memory_reader)
+
     if new_files:
         # We have new files, we need to deal with them per usual
         if not test_ratio:
@@ -198,8 +201,10 @@ def files_from_memory(
                 current_config=current_config,
                 verbose=verbose,
                 file=file,
-                output_folder=output_folder
+                output_folder=output_folder,
+                memory=writer
             )
+    memory.close()
 
 
 def glue(config: ProtogenieConfiguration, output_folder: str,
@@ -382,7 +387,9 @@ def _single_file_dispatch(
                     dataset = target_dataset.pop(0)
 
                 if memory:
-                    memory.writerow([file, "{}-{}".format(line_no - len(sentence) + 1 - blanks, line_no), dataset])
+                    memory.writerow([os.path.relpath(file),
+                                     "{}-{}".format(line_no - len(sentence) + 1 - blanks, line_no),
+                                     dataset])
                     blanks = 0
 
                 sentence = [x for x in sentence if x.strip()]
