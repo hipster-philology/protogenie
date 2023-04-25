@@ -207,7 +207,7 @@ class TestMemory(_TestHelper):
     def test_memory_content_multiple_files(self):
         """ This checks up that given a memory file, it is possible to recreate the same content on multiple files"""
         newcorpus = DEFAULT_CORPUS + """<corpus path="../tests/test_data/sentence.tsv" column_marker="TAB">""" \
-                                        """<splitter name="regexp" matchPattern="[\.:?!]"/>""" \
+                                        """<splitter name="regexp"><option matchPattern="[\.:?!]"/></splitter> """ \
                                         """<header type="default" /></corpus>"""
         with TemporaryDirectory(dir="./") as cur_dir:
             random.seed(1111)
@@ -255,7 +255,7 @@ class TestMemory(_TestHelper):
         """ This checks up that given a memory file, new files are otherwise dispatched """
 
         newcorpus = DEFAULT_CORPUS + """<corpus path="../tests/test_data/sentence.tsv" column_marker="TAB">""" \
-                                        """<splitter name="regexp" matchPattern="[\.:?!]"/>""" \
+                                    """<splitter name="regexp"><option matchPattern="[\.:?!]"/></splitter> """ \
                                         """<header type="default" /></corpus>"""
 
         secondcorpus = newcorpus + """<corpus path="../tests/test_data/file.tsv" column_marker="TAB">""" \

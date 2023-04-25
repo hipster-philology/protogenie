@@ -2,6 +2,7 @@ from typing import Dict, Optional, Any, Type, List
 import os.path
 import lxml.etree as ET
 from copy import deepcopy
+from collections import defaultdict
 
 from .splitters import RegExpSplitter, LineSplitter, TokenWindowSplitter, FileSplitter, _SplitterPrototype
 from .reader import Reader
@@ -122,6 +123,24 @@ class ProtogenieConfiguration:
         self.postprocessings: List[PostProcessing] = postprocessings or []
         self.output: Output = output
 
+    @staticmethod
+    def read_splitter_params(node: ET.Element):
+        """ Parses a node and provides a dictionary of parameters
+
+        >>> elem = ET.fromstring("<splitter name='test' uppercase='true'><option a='1' b='2'/><option a='3' /></splitter>")
+        >>> ProtogenieConfiguration.read_splitter_params(elem)
+        {'uppercase': 'true', 'a': ['1', '3'], 'b': ['2']}
+        """
+        base = {key: value for key, value in node.attrib.items() if key != "name"}
+        options = node.xpath("./option")
+        if options:
+            adding = defaultdict(list)
+            for opt in options:
+                for key, value in opt.attrib.items():
+                    adding[key].append(value)
+            base.update(adding)
+        return base
+
     @classmethod
     def from_xml(cls, filepath: str) -> "ProtogenieConfiguration":
         with open(filepath) as f:
@@ -152,7 +171,7 @@ class ProtogenieConfiguration:
                 "column_marker": corpus.get("column_marker"),
                 "splitter": corpus.find("splitter").get("name"),
                 "reader": Reader.from_xml(corpus.find("./header"), default=default_reader),
-                **{key: value for key, value in corpus.find("splitter").attrib.items() if key != "name"}
+                **cls.read_splitter_params(corpus.find("./splitter"))
             })
 
         # Check options

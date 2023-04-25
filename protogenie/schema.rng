@@ -374,7 +374,17 @@
                     </attribute>
                 </group>
                 <group>
-                   <ref name="regexp-attribute-group" />
+                    <a:documentation>The regexp splitter can use many option that will match different
+                        elements</a:documentation>
+                    <attribute name="name">
+                        <value>regexp</value>
+                    </attribute>
+                    <oneOrMore>
+                        <element name="option">
+                           <ref name="matchPattern" />
+                           <ref name="source" />
+                        </element>
+                    </oneOrMore>
                 </group>
                 <attribute name="name">
                     <a:documentation>Each empty line represent a new passage</a:documentation>
