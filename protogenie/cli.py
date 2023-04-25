@@ -103,7 +103,7 @@ def cli_rebuild(file, memory, output, clear=False, dev=.0, test=0.2):
 @click.option("-p", "--prefix", type=click.STRING, default="", help="Prefix for output files")
 @click.option("-v", "--verbose", default=False, is_flag=True, help="Print text level stats")
 def cli_concat(config, output, reduce, verbose, prefix):
-    """Given [MEMORY] file, uses [FILE] config file to generate a new corpus
+    """Given [CONFIG] file, uses files found in [OUTPUT] to collate files together
 
     This method detects new files and treat them if --test and --dev are given
     """
