@@ -17,7 +17,11 @@ Numeric = Union[int, float]
 
 def adhoc_reader(file: TextIO, delimiter: str) -> Iterable[List[str]]:
     for line in file.readlines():
-        yield [x for x in line.strip().split(delimiter) if x]
+        line = line.strip()
+        if line:
+            yield line.split(delimiter)
+        else:
+            yield None
 
 
 class PostProcessing(ABC):
