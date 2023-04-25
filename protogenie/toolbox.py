@@ -5,7 +5,7 @@ import regex as re
 from xml.etree.ElementTree import Element
 import csv
 from typing import List
-from .postprocessing import ApplyTo, PostProcessing
+from .postprocessing import ApplyTo, PostProcessing, adhoc_reader
 
 
 class RomanNumeral(PostProcessing):
@@ -36,7 +36,7 @@ class RomanNumeral(PostProcessing):
 
         try:
             with open(file_path) as file:
-                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                csv_reader = adhoc_reader(file, delimiter=config.column_marker)
                 header: List[str] = []
                 for nb_line, line in enumerate(csv_reader):  # The file should already have been open
                     if nb_line == 0:

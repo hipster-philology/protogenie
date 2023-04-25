@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections import namedtuple
 from xml.etree.ElementTree import Element
 import csv
-from typing import List, ClassVar, Tuple, Dict, Optional, TYPE_CHECKING, Union
+from typing import List, ClassVar, Tuple, Dict, Optional, TYPE_CHECKING, Union, TextIO, Iterable
 
 import regex as re
 
@@ -13,6 +13,11 @@ if TYPE_CHECKING:
     from .configs import CorpusConfiguration
 from .sentence_matchers import SentenceMatcherProto, SentenceRegexpMatcher
 Numeric = Union[int, float]
+
+
+def adhoc_reader(file: TextIO, delimiter: str) -> Iterable[List[str]]:
+    for line in file.readlines():
+        yield [x for x in line.strip().split(delimiter) if x]
 
 
 class PostProcessing(ABC):
@@ -132,7 +137,7 @@ class Disambiguation(PostProcessing):
 
         try:
             with open(file_path) as file:
-                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                csv_reader = adhoc_reader(file, delimiter=config.column_marker)
                 header: List[str] = []
                 for nb_line, line in enumerate(csv_reader):  # The file should already have been open
                     if nb_line == 0:
@@ -195,7 +200,7 @@ class ReplacementSet(PostProcessing):
         temp = tempfile.TemporaryFile(mode="w+")
         try:
             with open(file_path) as file:
-                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                csv_reader = adhoc_reader(file, delimiter=config.column_marker)
                 header: List[str] = []
                 for nb_line, line in enumerate(csv_reader):  # The file should already have been open
                     if nb_line == 0:
@@ -252,7 +257,7 @@ class Skip(PostProcessing):
 
         try:
             with open(file_path) as file:
-                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                csv_reader = adhoc_reader(file, delimiter=config.column_marker)
                 header: List[str] = []
                 for nb_line, line in enumerate(csv_reader):  # The file should already have been open
                     if nb_line == 0:
@@ -311,7 +316,7 @@ class Clitic(PostProcessing):
         default = ("", "")
         try:
             with open(file_path) as file:
-                csv_reader = csv.reader(file, delimiter=config.column_marker)
+                csv_reader = adhoc_reader(file, delimiter=config.column_marker)
                 header: List[str] = []
                 sequence = []
                 # [Int = Line to apply modifications to, Dict[Column name, Tuple[Glue, Value]]]
