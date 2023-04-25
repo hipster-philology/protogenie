@@ -60,7 +60,7 @@ class TestConfigs(_TestHelper):
         )
 
     def test_sentence(self):
-        self._dispatch(
+        x = self._dispatch(
             output_dir="./tests/tests_output/",
 
             train=0.8,

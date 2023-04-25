@@ -13,7 +13,9 @@
     </default-header>
     <corpora>
         <corpus path="../test_data/sentence.tsv" column_marker="TAB">
-            <splitter name="regexp" matchPattern="[\.!:]" source="token"/>
+            <splitter name="regexp">
+                <option matchPattern="[\.!:]" source="token"/>
+            </splitter>
             <header type="default" />
         </corpus>
     </corpora>

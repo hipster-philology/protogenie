@@ -3,7 +3,7 @@ when the CSV reader enters a new sentence.
 
 """
 
-import re
+import regex as re
 import math
 import random
 from typing import Dict, Union, List, Tuple, Optional
@@ -87,30 +87,45 @@ class _SplitterPrototype(_DispatcherRandom):
 
 
 class RegExpSplitter(_SplitterPrototype):
-    def __init__(self, column_marker="\t", matchPattern="["+DEFAULT_SENTENCE_MARKERS+"]", source="form", **kwargs):
+    def __init__(self, column_marker="\t", matchPattern: List[str] = None, source: List[str] = None, **kwargs):
         """ Returns true if the line is a sentence splitter by being empty
 
         :param column_marker: Marker that splits column in the CSV/TSV
         :param sentence_splitter: Marker that shows the end of a sentence
+
+        >>> from protogenie.reader import Reader
+        >>> reader = Reader(reader_type="explicit", keys=[("form", "token"), ("lemma", "lemma"), ("POS", "POS")],
+        ...                 column_marker=" ")
+        >>> reader.set_header("form lemma POS")
+        ['token', 'lemma', 'POS']
+        >>> obj = RegExpSplitter(" ", matchPattern=[r"PONfrt", r"Ref\."], source=["POS", "lemma"])
+        >>> obj("abc abc PONfbl", reader)
+        False
+        >>> obj("abc Ref. OUT", reader)
+        True
+        >>> obj(". . PONfrt", reader)
+        True
+
         """
         self.column_marker = column_marker
-        self.match_pattern = matchPattern
-        self.matcher = re.compile(matchPattern)
-        self.source: str = source
+        self.match_pattern: List[str] = matchPattern or ["["+DEFAULT_SENTENCE_MARKERS+"]"]
+        self.matcher: List[re.Regex] = [re.compile(matcher) for matcher in self.match_pattern]
+        self.source: List[str] = source or ["form"]
 
     def _repr_options(self):
         return " matchPattern='{}'".format(self.match_pattern)
 
     def __call__(self, line: str, reader: "Reader" = None):
-        return bool(
-            self.matcher.search(
+        for matcher, source in zip(self.matcher, self.source):
+            if matcher.search(
                 reader.get_column(
                     line.strip().split(reader.column_marker),
-                    self.source,
+                    source,
                     raise_on_none=True
                 )
-            )
-        )
+            ):
+                return True
+        return False
 
 
 class LineSplitter(_SplitterPrototype):
